@@ -53,6 +53,30 @@ export function getWarehouseTools(client: HoldedClient) {
       },
     },
 
+    // List Products Stock in Warehouse
+    list_warehouse_stock: {
+      description: 'List all products stock in a specific warehouse',
+      inputSchema: {
+        type: 'object' as const,
+        properties: {
+          warehouseId: {
+            type: 'string',
+            description: 'Warehouse ID',
+          },
+          page: {
+            type: 'number',
+            description: 'Page number for pagination (optional)',
+          },
+        },
+        required: ['warehouseId'],
+      },
+      handler: async (args: { warehouseId: string; page?: number }) => {
+        const queryParams: Record<string, string | number> = {};
+        if (args.page) queryParams.page = args.page;
+        return client.get(`/warehouses/${args.warehouseId}/stock`, queryParams);
+      },
+    },
+
     // Get Warehouse
     get_warehouse: {
       description: 'Get a specific warehouse by ID',
