@@ -64,13 +64,32 @@ export function getDocumentTools(client: HoldedClient) {
       handler: async (args: { docType: DocumentType; page?: number; starttmp?: string; endtmp?: string; contactid?: string; paid?: string; billed?: string; sort?: string }) => {
         const queryParams: Record<string, string | number> = {};
         if (args.page) queryParams.page = args.page;
-        if (args.starttmp) queryParams.starttmp = args.starttmp;
+        if (args.starttmp) {
+          queryParams.starttmp = args.starttmp;
+          // If starttmp is provided but endtmp is not, default to current timestamp
+          if (!args.endtmp) {
+            queryParams.endtmp = Math.floor(Date.now() / 1000).toString();
+          }
+        }
         if (args.endtmp) queryParams.endtmp = args.endtmp;
         if (args.contactid) queryParams.contactid = args.contactid;
         if (args.paid) queryParams.paid = args.paid;
         if (args.billed) queryParams.billed = args.billed;
         if (args.sort) queryParams.sort = args.sort;
-        return client.get(`/documents/${args.docType}`, queryParams);
+        const result = await client.get(`/documents/${args.docType}`, queryParams);
+        // Filter to return only essential fields
+        if (Array.isArray(result)) {
+          return result.map((doc: Record<string, unknown>) => ({
+            id: doc.id,
+            contact: doc.contact,
+            contactName: doc.contactName,
+            date: doc.date,
+            tax: doc.tax,
+            total: doc.total,
+            status: doc.status,
+          }));
+        }
+        return result;
       },
     },
 

@@ -26,7 +26,13 @@ export function getPaymentTools(client: HoldedClient) {
       handler: async (args: { page?: number; starttmp?: string; endtmp?: string }) => {
         const queryParams: Record<string, string | number> = {};
         if (args.page) queryParams.page = args.page;
-        if (args.starttmp) queryParams.starttmp = args.starttmp;
+        if (args.starttmp) {
+          queryParams.starttmp = args.starttmp;
+          // If starttmp is provided but endtmp is not, default to current timestamp
+          if (!args.endtmp) {
+            queryParams.endtmp = Math.floor(Date.now() / 1000).toString();
+          }
+        }
         if (args.endtmp) queryParams.endtmp = args.endtmp;
         return client.get('/payments', queryParams);
       },
