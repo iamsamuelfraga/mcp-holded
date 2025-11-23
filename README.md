@@ -175,7 +175,10 @@ MIT
 
 ## Author
 
-Samuel Fraga ([@iamsamuelfraga](https://github.com/iamsamuelfraga))
+Samuel Fraga
+
+- [GitHub](https://github.com/iamsamuelfraga)
+- [LinkedIn](https://www.linkedin.com/in/samuel-fraga/)
 
 ## Links
 
