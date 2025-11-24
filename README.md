@@ -1,5 +1,10 @@
 # MCP Holded
 
+[![CI](https://github.com/iamsamuelfraga/mcp-holded/actions/workflows/ci.yml/badge.svg)](https://github.com/iamsamuelfraga/mcp-holded/actions/workflows/ci.yml)
+[![npm version](https://badge.fury.io/js/%40iamsamuelfraga%2Fmcp-holded.svg)](https://www.npmjs.com/package/@iamsamuelfraga/mcp-holded)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![codecov](https://codecov.io/gh/iamsamuelfraga/mcp-holded/branch/main/graph/badge.svg)](https://codecov.io/gh/iamsamuelfraga/mcp-holded)
+
 A Model Context Protocol (MCP) server for the Holded Invoice API. This server allows AI assistants like Claude to interact with Holded's invoicing, contacts, products, and more.
 
 ## Features
