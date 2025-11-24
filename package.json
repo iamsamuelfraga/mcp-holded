@@ -33,8 +33,12 @@
     "type": "git",
     "url": "https://github.com/iamsamuelfraga/mcp-holded.git"
   },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
   "dependencies": {
-    "@iamsamuelfraga/mcp-holded": "^1.0.5",
     "@modelcontextprotocol/sdk": "^1.0.0"
   },
   "devDependencies": {
