@@ -1,0 +1,18 @@
+startCommand:
+  type: stdio
+  configSchema:
+    type: object
+    properties:
+      HOLDED_API_KEY:
+        type: string
+        description: Your Holded API key (get it from Holded Settings > API)
+    required:
+      - HOLDED_API_KEY
+  commandFunction: |-
+    (config) => ({
+      command: 'npx',
+      args: ['-y', '@iamsamuelfraga/mcp-holded'],
+      env: {
+        HOLDED_API_KEY: config.HOLDED_API_KEY
+      }
+    })
