@@ -24,16 +24,13 @@ describe('HoldedClient', () => {
 
       await client.get('/contacts');
 
-      expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.holded.com/api/invoicing/v1/contacts',
-        {
-          method: 'GET',
-          headers: {
-            'key': 'test-api-key',
-            'Content-Type': 'application/json',
-          },
-        }
-      );
+      expect(mockFetch).toHaveBeenCalledWith('https://api.holded.com/api/invoicing/v1/contacts', {
+        method: 'GET',
+        headers: {
+          key: 'test-api-key',
+          'Content-Type': 'application/json',
+        },
+      });
     });
 
     it('should add query parameters', async () => {
@@ -81,17 +78,14 @@ describe('HoldedClient', () => {
       const body = { name: 'Test Contact' };
       await client.post('/contacts', body);
 
-      expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.holded.com/api/invoicing/v1/contacts',
-        {
-          method: 'POST',
-          headers: {
-            'key': 'test-api-key',
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(body),
-        }
-      );
+      expect(mockFetch).toHaveBeenCalledWith('https://api.holded.com/api/invoicing/v1/contacts', {
+        method: 'POST',
+        headers: {
+          key: 'test-api-key',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
     });
   });
 
@@ -110,7 +104,7 @@ describe('HoldedClient', () => {
         {
           method: 'PUT',
           headers: {
-            'key': 'test-api-key',
+            key: 'test-api-key',
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(body),
@@ -133,7 +127,7 @@ describe('HoldedClient', () => {
         {
           method: 'DELETE',
           headers: {
-            'key': 'test-api-key',
+            key: 'test-api-key',
             'Content-Type': 'application/json',
           },
         }
@@ -156,7 +150,7 @@ describe('HoldedClient', () => {
         {
           method: 'POST',
           headers: {
-            'key': 'test-api-key',
+            key: 'test-api-key',
           },
           body: expect.any(FormData),
         }
