@@ -29,7 +29,7 @@ export class HoldedClient {
     }
 
     const headers: Record<string, string> = {
-      'key': this.apiKey,
+      key: this.apiKey,
       'Content-Type': 'application/json',
     };
 
@@ -85,7 +85,7 @@ export class HoldedClient {
     const response = await fetch(url, {
       method: 'POST',
       headers: {
-        'key': this.apiKey,
+        key: this.apiKey,
       },
       body: formData,
     });

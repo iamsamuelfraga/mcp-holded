@@ -18,13 +18,26 @@ export function getDocumentTools(client: HoldedClient) {
   return {
     // List Documents
     list_documents: {
-      description: 'List all documents of a specific type with optional filters for date range, contact, payment status, and sorting',
+      description:
+        'List all documents of a specific type with optional filters for date range, contact, payment status, and sorting',
       inputSchema: {
         type: 'object' as const,
         properties: {
           docType: {
             type: 'string',
-            enum: ['invoice', 'salesreceipt', 'creditnote', 'receiptnote', 'estimate', 'salesorder', 'waybill', 'proform', 'purchase', 'purchaserefund', 'purchaseorder'],
+            enum: [
+              'invoice',
+              'salesreceipt',
+              'creditnote',
+              'receiptnote',
+              'estimate',
+              'salesorder',
+              'waybill',
+              'proform',
+              'purchase',
+              'purchaserefund',
+              'purchaseorder',
+            ],
             description: 'Type of document to list',
           },
           page: {
@@ -61,7 +74,16 @@ export function getDocumentTools(client: HoldedClient) {
         },
         required: ['docType'],
       },
-      handler: async (args: { docType: DocumentType; page?: number; starttmp?: string; endtmp?: string; contactid?: string; paid?: string; billed?: string; sort?: string }) => {
+      handler: async (args: {
+        docType: DocumentType;
+        page?: number;
+        starttmp?: string;
+        endtmp?: string;
+        contactid?: string;
+        paid?: string;
+        billed?: string;
+        sort?: string;
+      }) => {
         const queryParams: Record<string, string | number> = {};
         if (args.page) queryParams.page = args.page;
         if (args.starttmp) {
@@ -101,7 +123,19 @@ export function getDocumentTools(client: HoldedClient) {
         properties: {
           docType: {
             type: 'string',
-            enum: ['invoice', 'salesreceipt', 'creditnote', 'receiptnote', 'estimate', 'salesorder', 'waybill', 'proform', 'purchase', 'purchaserefund', 'purchaseorder'],
+            enum: [
+              'invoice',
+              'salesreceipt',
+              'creditnote',
+              'receiptnote',
+              'estimate',
+              'salesorder',
+              'waybill',
+              'proform',
+              'purchase',
+              'purchaserefund',
+              'purchaseorder',
+            ],
             description: 'Type of document to create',
           },
           contactId: {
@@ -150,7 +184,19 @@ export function getDocumentTools(client: HoldedClient) {
         properties: {
           docType: {
             type: 'string',
-            enum: ['invoice', 'salesreceipt', 'creditnote', 'receiptnote', 'estimate', 'salesorder', 'waybill', 'proform', 'purchase', 'purchaserefund', 'purchaseorder'],
+            enum: [
+              'invoice',
+              'salesreceipt',
+              'creditnote',
+              'receiptnote',
+              'estimate',
+              'salesorder',
+              'waybill',
+              'proform',
+              'purchase',
+              'purchaserefund',
+              'purchaseorder',
+            ],
             description: 'Type of document',
           },
           documentId: {
@@ -173,7 +219,19 @@ export function getDocumentTools(client: HoldedClient) {
         properties: {
           docType: {
             type: 'string',
-            enum: ['invoice', 'salesreceipt', 'creditnote', 'receiptnote', 'estimate', 'salesorder', 'waybill', 'proform', 'purchase', 'purchaserefund', 'purchaseorder'],
+            enum: [
+              'invoice',
+              'salesreceipt',
+              'creditnote',
+              'receiptnote',
+              'estimate',
+              'salesorder',
+              'waybill',
+              'proform',
+              'purchase',
+              'purchaserefund',
+              'purchaseorder',
+            ],
             description: 'Type of document',
           },
           documentId: {
@@ -199,7 +257,11 @@ export function getDocumentTools(client: HoldedClient) {
         },
         required: ['docType', 'documentId'],
       },
-      handler: async (args: { docType: DocumentType; documentId: string; [key: string]: unknown }) => {
+      handler: async (args: {
+        docType: DocumentType;
+        documentId: string;
+        [key: string]: unknown;
+      }) => {
         const { docType, documentId, ...body } = args;
         return client.put(`/documents/${docType}/${documentId}`, body);
       },
@@ -213,7 +275,19 @@ export function getDocumentTools(client: HoldedClient) {
         properties: {
           docType: {
             type: 'string',
-            enum: ['invoice', 'salesreceipt', 'creditnote', 'receiptnote', 'estimate', 'salesorder', 'waybill', 'proform', 'purchase', 'purchaserefund', 'purchaseorder'],
+            enum: [
+              'invoice',
+              'salesreceipt',
+              'creditnote',
+              'receiptnote',
+              'estimate',
+              'salesorder',
+              'waybill',
+              'proform',
+              'purchase',
+              'purchaserefund',
+              'purchaseorder',
+            ],
             description: 'Type of document',
           },
           documentId: {
@@ -236,7 +310,19 @@ export function getDocumentTools(client: HoldedClient) {
         properties: {
           docType: {
             type: 'string',
-            enum: ['invoice', 'salesreceipt', 'creditnote', 'receiptnote', 'estimate', 'salesorder', 'waybill', 'proform', 'purchase', 'purchaserefund', 'purchaseorder'],
+            enum: [
+              'invoice',
+              'salesreceipt',
+              'creditnote',
+              'receiptnote',
+              'estimate',
+              'salesorder',
+              'waybill',
+              'proform',
+              'purchase',
+              'purchaserefund',
+              'purchaseorder',
+            ],
             description: 'Type of document',
           },
           documentId: {
@@ -258,7 +344,11 @@ export function getDocumentTools(client: HoldedClient) {
         },
         required: ['docType', 'documentId', 'amount'],
       },
-      handler: async (args: { docType: DocumentType; documentId: string; [key: string]: unknown }) => {
+      handler: async (args: {
+        docType: DocumentType;
+        documentId: string;
+        [key: string]: unknown;
+      }) => {
         const { docType, documentId, ...body } = args;
         return client.post(`/documents/${docType}/${documentId}/pay`, body);
       },
@@ -272,7 +362,19 @@ export function getDocumentTools(client: HoldedClient) {
         properties: {
           docType: {
             type: 'string',
-            enum: ['invoice', 'salesreceipt', 'creditnote', 'receiptnote', 'estimate', 'salesorder', 'waybill', 'proform', 'purchase', 'purchaserefund', 'purchaseorder'],
+            enum: [
+              'invoice',
+              'salesreceipt',
+              'creditnote',
+              'receiptnote',
+              'estimate',
+              'salesorder',
+              'waybill',
+              'proform',
+              'purchase',
+              'purchaserefund',
+              'purchaseorder',
+            ],
             description: 'Type of document',
           },
           documentId: {
@@ -295,7 +397,11 @@ export function getDocumentTools(client: HoldedClient) {
         },
         required: ['docType', 'documentId', 'emails'],
       },
-      handler: async (args: { docType: DocumentType; documentId: string; [key: string]: unknown }) => {
+      handler: async (args: {
+        docType: DocumentType;
+        documentId: string;
+        [key: string]: unknown;
+      }) => {
         const { docType, documentId, ...body } = args;
         return client.post(`/documents/${docType}/${documentId}/send`, body);
       },
@@ -309,7 +415,19 @@ export function getDocumentTools(client: HoldedClient) {
         properties: {
           docType: {
             type: 'string',
-            enum: ['invoice', 'salesreceipt', 'creditnote', 'receiptnote', 'estimate', 'salesorder', 'waybill', 'proform', 'purchase', 'purchaserefund', 'purchaseorder'],
+            enum: [
+              'invoice',
+              'salesreceipt',
+              'creditnote',
+              'receiptnote',
+              'estimate',
+              'salesorder',
+              'waybill',
+              'proform',
+              'purchase',
+              'purchaserefund',
+              'purchaseorder',
+            ],
             description: 'Type of document',
           },
           documentId: {
@@ -332,7 +450,19 @@ export function getDocumentTools(client: HoldedClient) {
         properties: {
           docType: {
             type: 'string',
-            enum: ['invoice', 'salesreceipt', 'creditnote', 'receiptnote', 'estimate', 'salesorder', 'waybill', 'proform', 'purchase', 'purchaserefund', 'purchaseorder'],
+            enum: [
+              'invoice',
+              'salesreceipt',
+              'creditnote',
+              'receiptnote',
+              'estimate',
+              'salesorder',
+              'waybill',
+              'proform',
+              'purchase',
+              'purchaserefund',
+              'purchaseorder',
+            ],
             description: 'Type of document',
           },
           documentId: {
@@ -355,7 +485,19 @@ export function getDocumentTools(client: HoldedClient) {
         properties: {
           docType: {
             type: 'string',
-            enum: ['invoice', 'salesreceipt', 'creditnote', 'receiptnote', 'estimate', 'salesorder', 'waybill', 'proform', 'purchase', 'purchaserefund', 'purchaseorder'],
+            enum: [
+              'invoice',
+              'salesreceipt',
+              'creditnote',
+              'receiptnote',
+              'estimate',
+              'salesorder',
+              'waybill',
+              'proform',
+              'purchase',
+              'purchaserefund',
+              'purchaseorder',
+            ],
             description: 'Type of document',
           },
           documentId: {
@@ -377,7 +519,9 @@ export function getDocumentTools(client: HoldedClient) {
         required: ['docType', 'documentId', 'lines'],
       },
       handler: async (args: { docType: DocumentType; documentId: string; lines: unknown }) => {
-        return client.post(`/documents/${args.docType}/${args.documentId}/ship`, { lines: args.lines });
+        return client.post(`/documents/${args.docType}/${args.documentId}/ship`, {
+          lines: args.lines,
+        });
       },
     },
 
@@ -389,7 +533,19 @@ export function getDocumentTools(client: HoldedClient) {
         properties: {
           docType: {
             type: 'string',
-            enum: ['invoice', 'salesreceipt', 'creditnote', 'receiptnote', 'estimate', 'salesorder', 'waybill', 'proform', 'purchase', 'purchaserefund', 'purchaseorder'],
+            enum: [
+              'invoice',
+              'salesreceipt',
+              'creditnote',
+              'receiptnote',
+              'estimate',
+              'salesorder',
+              'waybill',
+              'proform',
+              'purchase',
+              'purchaserefund',
+              'purchaseorder',
+            ],
             description: 'Type of document',
           },
           documentId: {
@@ -412,7 +568,19 @@ export function getDocumentTools(client: HoldedClient) {
         properties: {
           docType: {
             type: 'string',
-            enum: ['invoice', 'salesreceipt', 'creditnote', 'receiptnote', 'estimate', 'salesorder', 'waybill', 'proform', 'purchase', 'purchaserefund', 'purchaseorder'],
+            enum: [
+              'invoice',
+              'salesreceipt',
+              'creditnote',
+              'receiptnote',
+              'estimate',
+              'salesorder',
+              'waybill',
+              'proform',
+              'purchase',
+              'purchaserefund',
+              'purchaseorder',
+            ],
             description: 'Type of document',
           },
           documentId: {
@@ -430,9 +598,18 @@ export function getDocumentTools(client: HoldedClient) {
         },
         required: ['docType', 'documentId', 'fileBase64', 'filename'],
       },
-      handler: async (args: { docType: DocumentType; documentId: string; fileBase64: string; filename: string }) => {
+      handler: async (args: {
+        docType: DocumentType;
+        documentId: string;
+        fileBase64: string;
+        filename: string;
+      }) => {
         const buffer = Buffer.from(args.fileBase64, 'base64');
-        return client.uploadFile(`/documents/${args.docType}/${args.documentId}/attach`, buffer, args.filename);
+        return client.uploadFile(
+          `/documents/${args.docType}/${args.documentId}/attach`,
+          buffer,
+          args.filename
+        );
       },
     },
 
@@ -444,7 +621,19 @@ export function getDocumentTools(client: HoldedClient) {
         properties: {
           docType: {
             type: 'string',
-            enum: ['invoice', 'salesreceipt', 'creditnote', 'receiptnote', 'estimate', 'salesorder', 'waybill', 'proform', 'purchase', 'purchaserefund', 'purchaseorder'],
+            enum: [
+              'invoice',
+              'salesreceipt',
+              'creditnote',
+              'receiptnote',
+              'estimate',
+              'salesorder',
+              'waybill',
+              'proform',
+              'purchase',
+              'purchaserefund',
+              'purchaseorder',
+            ],
             description: 'Type of document',
           },
           documentId: {
@@ -462,7 +651,11 @@ export function getDocumentTools(client: HoldedClient) {
         },
         required: ['docType', 'documentId'],
       },
-      handler: async (args: { docType: DocumentType; documentId: string; [key: string]: unknown }) => {
+      handler: async (args: {
+        docType: DocumentType;
+        documentId: string;
+        [key: string]: unknown;
+      }) => {
         const { docType, documentId, ...body } = args;
         return client.post(`/documents/${docType}/${documentId}/tracking`, body);
       },
@@ -476,7 +669,19 @@ export function getDocumentTools(client: HoldedClient) {
         properties: {
           docType: {
             type: 'string',
-            enum: ['invoice', 'salesreceipt', 'creditnote', 'receiptnote', 'estimate', 'salesorder', 'waybill', 'proform', 'purchase', 'purchaserefund', 'purchaseorder'],
+            enum: [
+              'invoice',
+              'salesreceipt',
+              'creditnote',
+              'receiptnote',
+              'estimate',
+              'salesorder',
+              'waybill',
+              'proform',
+              'purchase',
+              'purchaserefund',
+              'purchaseorder',
+            ],
             description: 'Type of document',
           },
           documentId: {
@@ -494,7 +699,12 @@ export function getDocumentTools(client: HoldedClient) {
         },
         required: ['docType', 'documentId', 'pipelineId', 'stageId'],
       },
-      handler: async (args: { docType: DocumentType; documentId: string; pipelineId: string; stageId: string }) => {
+      handler: async (args: {
+        docType: DocumentType;
+        documentId: string;
+        pipelineId: string;
+        stageId: string;
+      }) => {
         return client.post(`/documents/${args.docType}/${args.documentId}/pipeline`, {
           pipelineId: args.pipelineId,
           stageId: args.stageId,

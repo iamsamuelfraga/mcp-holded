@@ -28,13 +28,20 @@ export function getContactTools(client: HoldedClient) {
         },
         required: [],
       },
-      handler: async (args: { page?: number; phone?: string; mobile?: string; customId?: string[] }) => {
+      handler: async (args: {
+        page?: number;
+        phone?: string;
+        mobile?: string;
+        customId?: string[];
+      }) => {
         const queryParams: Record<string, string | number> = {};
         if (args.page) queryParams.page = args.page;
         if (args.phone) queryParams.phone = args.phone;
         if (args.mobile) queryParams.mobile = args.mobile;
         if (args.customId) queryParams['customId[]'] = args.customId.join(',');
-        const contacts = await client.get('/contacts', queryParams) as Array<Record<string, unknown>>;
+        const contacts = (await client.get('/contacts', queryParams)) as Array<
+          Record<string, unknown>
+        >;
         return contacts.map((contact) => ({
           id: contact.id,
           customId: contact.customId,

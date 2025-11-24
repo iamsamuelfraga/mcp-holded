@@ -10,7 +10,19 @@ export function getNumberingSeriesTools(client: HoldedClient) {
         properties: {
           docType: {
             type: 'string',
-            enum: ['invoice', 'salesreceipt', 'creditnote', 'receiptnote', 'estimate', 'salesorder', 'waybill', 'proform', 'purchase', 'purchaserefund', 'purchaseorder'],
+            enum: [
+              'invoice',
+              'salesreceipt',
+              'creditnote',
+              'receiptnote',
+              'estimate',
+              'salesorder',
+              'waybill',
+              'proform',
+              'purchase',
+              'purchaserefund',
+              'purchaseorder',
+            ],
             description: 'Document type',
           },
         },
@@ -29,7 +41,19 @@ export function getNumberingSeriesTools(client: HoldedClient) {
         properties: {
           docType: {
             type: 'string',
-            enum: ['invoice', 'salesreceipt', 'creditnote', 'receiptnote', 'estimate', 'salesorder', 'waybill', 'proform', 'purchase', 'purchaserefund', 'purchaseorder'],
+            enum: [
+              'invoice',
+              'salesreceipt',
+              'creditnote',
+              'receiptnote',
+              'estimate',
+              'salesorder',
+              'waybill',
+              'proform',
+              'purchase',
+              'purchaserefund',
+              'purchaseorder',
+            ],
             description: 'Document type',
           },
           name: {
@@ -61,7 +85,19 @@ export function getNumberingSeriesTools(client: HoldedClient) {
         properties: {
           docType: {
             type: 'string',
-            enum: ['invoice', 'salesreceipt', 'creditnote', 'receiptnote', 'estimate', 'salesorder', 'waybill', 'proform', 'purchase', 'purchaserefund', 'purchaseorder'],
+            enum: [
+              'invoice',
+              'salesreceipt',
+              'creditnote',
+              'receiptnote',
+              'estimate',
+              'salesorder',
+              'waybill',
+              'proform',
+              'purchase',
+              'purchaserefund',
+              'purchaseorder',
+            ],
             description: 'Document type',
           },
           serieId: {
@@ -97,7 +133,19 @@ export function getNumberingSeriesTools(client: HoldedClient) {
         properties: {
           docType: {
             type: 'string',
-            enum: ['invoice', 'salesreceipt', 'creditnote', 'receiptnote', 'estimate', 'salesorder', 'waybill', 'proform', 'purchase', 'purchaserefund', 'purchaseorder'],
+            enum: [
+              'invoice',
+              'salesreceipt',
+              'creditnote',
+              'receiptnote',
+              'estimate',
+              'salesorder',
+              'waybill',
+              'proform',
+              'purchase',
+              'purchaserefund',
+              'purchaseorder',
+            ],
             description: 'Document type',
           },
           serieId: {
