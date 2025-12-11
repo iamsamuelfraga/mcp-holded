@@ -1,3 +1,10 @@
+## [1.2.6](https://github.com/iamsamuelfraga/mcp-holded/compare/v1.2.5...v1.2.6) (2025-12-11)
+
+
+### Bug Fixes
+
+* temporarily disable version auto-update for initial publication ([d98d493](https://github.com/iamsamuelfraga/mcp-holded/commit/d98d493ddfd8a9e9099dfd4836d00d7ddac7906b))
+
 ## [1.2.5](https://github.com/iamsamuelfraga/mcp-holded/compare/v1.2.4...v1.2.5) (2025-12-11)
 
 
