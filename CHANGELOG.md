@@ -1,3 +1,10 @@
+## [1.2.1](https://github.com/iamsamuelfraga/mcp-holded/compare/v1.2.0...v1.2.1) (2025-12-11)
+
+
+### Bug Fixes
+
+* migrate server.json to 2025-09-29 schema format ([5ed7941](https://github.com/iamsamuelfraga/mcp-holded/commit/5ed79412c7d0f2b43636454fa5162b444ec25d7d))
+
 # [1.2.0](https://github.com/iamsamuelfraga/mcp-holded/compare/v1.1.1...v1.2.0) (2025-12-11)
 
 
