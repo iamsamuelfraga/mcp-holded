@@ -39,7 +39,9 @@ jobs:
             const fs = require('fs');
             const server = JSON.parse(fs.readFileSync('server.json', 'utf8'));
             server.version = process.env.VERSION;
-            server.package.version = process.env.VERSION;
+            if (server.packages && server.packages[0]) {
+              server.packages[0].identifier = '@iamsamuelfraga/mcp-holded@' + process.env.VERSION;
+            }
             fs.writeFileSync('server.json', JSON.stringify(server, null, 2) + '\n');
           " VERSION=$VERSION
 
@@ -53,4 +55,4 @@ jobs:
         run: ./mcp-publisher login github-oidc
 
       - name: Publish to MCP Registry
-        run: ./mcp-publisher publish --allow-deprecated-schema || true
+        run: ./mcp-publisher publish
