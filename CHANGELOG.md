@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/iamsamuelfraga/mcp-holded/compare/v1.0.0...v1.0.1) (2025-12-11)
+
+
+### Bug Fixes
+
+* update dependencies to resolve security vulnerabilities ([72dd8c0](https://github.com/iamsamuelfraga/mcp-holded/commit/72dd8c0bb0e55e9a4abf664bff32f511adcdec91))
+
 # 1.0.0 (2025-11-24)
 
 
