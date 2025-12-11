@@ -1,3 +1,10 @@
+## [1.2.4](https://github.com/iamsamuelfraga/mcp-holded/compare/v1.2.3...v1.2.4) (2025-12-11)
+
+
+### Bug Fixes
+
+* improve version update script using heredoc ([aa6f76a](https://github.com/iamsamuelfraga/mcp-holded/commit/aa6f76abdb10a185fafc50a94943ee54a1547a81))
+
 ## [1.2.3](https://github.com/iamsamuelfraga/mcp-holded/compare/v1.2.2...v1.2.3) (2025-12-11)
 
 
