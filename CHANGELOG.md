@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/iamsamuelfraga/mcp-holded/compare/v1.0.1...v1.1.0) (2025-12-11)
+
+
+### Features
+
+* prepare for MCP catalog submission ([267501e](https://github.com/iamsamuelfraga/mcp-holded/commit/267501e2870b7d6e9c30d2d8fca7559957b8d1bc))
+
 ## [1.0.1](https://github.com/iamsamuelfraga/mcp-holded/compare/v1.0.0...v1.0.1) (2025-12-11)
 
 
