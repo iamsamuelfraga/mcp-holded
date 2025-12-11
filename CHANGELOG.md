@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/iamsamuelfraga/mcp-holded/compare/v1.1.1...v1.2.0) (2025-12-11)
+
+
+### Features
+
+* add MCP registry publishing workflow ([3d6cded](https://github.com/iamsamuelfraga/mcp-holded/commit/3d6cdede8bb281493a9be29eaa07379d077a77c3))
+
 ## [1.1.1](https://github.com/iamsamuelfraga/mcp-holded/compare/v1.1.0...v1.1.1) (2025-12-11)
 
 
