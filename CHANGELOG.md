@@ -1,3 +1,10 @@
+## [1.2.2](https://github.com/iamsamuelfraga/mcp-holded/compare/v1.2.1...v1.2.2) (2025-12-11)
+
+
+### Bug Fixes
+
+* update to latest schema 2025-10-17 ([5de667f](https://github.com/iamsamuelfraga/mcp-holded/commit/5de667fc9682fa1d973f272de2775392a3f095a0))
+
 ## [1.2.1](https://github.com/iamsamuelfraga/mcp-holded/compare/v1.2.0...v1.2.1) (2025-12-11)
 
 
