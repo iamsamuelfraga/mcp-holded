@@ -1,3 +1,10 @@
+## [1.2.5](https://github.com/iamsamuelfraga/mcp-holded/compare/v1.2.4...v1.2.5) (2025-12-11)
+
+
+### Bug Fixes
+
+* use published npm version 1.0.5 for initial MCP registry publication ([039a4e4](https://github.com/iamsamuelfraga/mcp-holded/commit/039a4e4c33f26126222cd753639d9933ef2e591b))
+
 ## [1.2.4](https://github.com/iamsamuelfraga/mcp-holded/compare/v1.2.3...v1.2.4) (2025-12-11)
 
 
