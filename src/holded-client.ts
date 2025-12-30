@@ -1,3 +1,6 @@
+import fetch, { RequestInit } from 'node-fetch';
+import FormData from 'form-data';
+
 const BASE_URL = 'https://api.holded.com/api/invoicing/v1';
 
 export class HoldedClient {
@@ -79,15 +82,15 @@ export class HoldedClient {
     const url = `${BASE_URL}${endpoint}`;
 
     const formData = new FormData();
-    const blob = new Blob([new Uint8Array(file)]);
-    formData.append('file', blob, filename);
+    formData.append('file', file, filename);
 
     const response = await fetch(url, {
       method: 'POST',
       headers: {
         key: this.apiKey,
+        ...formData.getHeaders(),
       },
-      body: formData,
+      body: formData as any,
     });
 
     if (!response.ok) {
