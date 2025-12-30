@@ -1,13 +1,19 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { HoldedClient } from '../holded-client.js';
 
+// Mock node-fetch before importing
+vi.mock('node-fetch', () => ({
+  default: vi.fn(),
+}));
+
 describe('HoldedClient', () => {
   let client: HoldedClient;
   const mockFetch = vi.fn();
 
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks();
-    global.fetch = mockFetch;
+    const nodeFetch = await import('node-fetch');
+    vi.mocked(nodeFetch.default).mockImplementation(mockFetch as any);
     client = new HoldedClient('test-api-key');
   });
 
@@ -147,13 +153,14 @@ describe('HoldedClient', () => {
 
       expect(mockFetch).toHaveBeenCalledWith(
         'https://api.holded.com/api/invoicing/v1/documents/invoice/123/attach',
-        {
+        expect.objectContaining({
           method: 'POST',
-          headers: {
+          headers: expect.objectContaining({
             key: 'test-api-key',
-          },
-          body: expect.any(FormData),
-        }
+            'content-type': expect.stringContaining('multipart/form-data'),
+          }),
+          body: expect.anything(),
+        })
       );
     });
   });
