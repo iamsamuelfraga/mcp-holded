@@ -35,7 +35,15 @@ export function getPaymentTools(client: HoldedClient) {
           }
         }
         if (args.endtmp) queryParams.endtmp = args.endtmp;
-        return client.get('/payments', queryParams);
+        const payments = (await client.get('/payments', queryParams)) as Array<
+          Record<string, unknown>
+        >;
+        return payments.map((payment) => ({
+          id: payment.id,
+          name: payment.name,
+          days: payment.days,
+          discount: payment.discount,
+        }));
       },
     },
 

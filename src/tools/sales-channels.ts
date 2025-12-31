@@ -12,7 +12,11 @@ export function getSalesChannelTools(client: HoldedClient) {
       },
       readOnlyHint: true,
       handler: async () => {
-        return client.get('/saleschannels');
+        const channels = (await client.get('/saleschannels')) as Array<Record<string, unknown>>;
+        return channels.map((channel) => ({
+          id: channel.id,
+          name: channel.name,
+        }));
       },
     },
 

@@ -12,7 +12,12 @@ export function getRemittanceTools(client: HoldedClient) {
       },
       readOnlyHint: true,
       handler: async () => {
-        return client.get('/remittances');
+        const remittances = (await client.get('/remittances')) as Array<Record<string, unknown>>;
+        return remittances.map((remittance) => ({
+          id: remittance.id,
+          name: remittance.name,
+          date: remittance.date,
+        }));
       },
     },
 

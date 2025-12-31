@@ -12,7 +12,12 @@ export function getWarehouseTools(client: HoldedClient) {
       },
       readOnlyHint: true,
       handler: async () => {
-        return client.get('/warehouses');
+        const warehouses = (await client.get('/warehouses')) as Array<Record<string, unknown>>;
+        return warehouses.map((warehouse) => ({
+          id: warehouse.id,
+          name: warehouse.name,
+          address: warehouse.address,
+        }));
       },
     },
 

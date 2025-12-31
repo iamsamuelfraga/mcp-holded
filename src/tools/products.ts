@@ -19,7 +19,16 @@ export function getProductTools(client: HoldedClient) {
       handler: async (args: { page?: number }) => {
         const queryParams: Record<string, string | number> = {};
         if (args.page) queryParams.page = args.page;
-        return client.get('/products', queryParams);
+        const products = (await client.get('/products', queryParams)) as Array<
+          Record<string, unknown>
+        >;
+        return products.map((product) => ({
+          id: product.id,
+          name: product.name,
+          sku: product.sku,
+          price: product.price,
+          stock: product.stock,
+        }));
       },
     },
 

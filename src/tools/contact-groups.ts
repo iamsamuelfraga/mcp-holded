@@ -12,7 +12,11 @@ export function getContactGroupTools(client: HoldedClient) {
       },
       readOnlyHint: true,
       handler: async () => {
-        return client.get('/contactgroups');
+        const groups = (await client.get('/contactgroups')) as Array<Record<string, unknown>>;
+        return groups.map((group) => ({
+          id: group.id,
+          name: group.name,
+        }));
       },
     },
 

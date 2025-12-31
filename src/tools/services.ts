@@ -19,7 +19,15 @@ export function getServiceTools(client: HoldedClient) {
       handler: async (args: { page?: number }) => {
         const queryParams: Record<string, string | number> = {};
         if (args.page) queryParams.page = args.page;
-        return client.get('/services', queryParams);
+        const services = (await client.get('/services', queryParams)) as Array<
+          Record<string, unknown>
+        >;
+        return services.map((service) => ({
+          id: service.id,
+          name: service.name,
+          price: service.price,
+          tax: service.tax,
+        }));
       },
     },
 

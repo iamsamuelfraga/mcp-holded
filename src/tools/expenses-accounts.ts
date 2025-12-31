@@ -12,7 +12,12 @@ export function getExpensesAccountTools(client: HoldedClient) {
       },
       readOnlyHint: true,
       handler: async () => {
-        return client.get('/expensesaccounts');
+        const accounts = (await client.get('/expensesaccounts')) as Array<Record<string, unknown>>;
+        return accounts.map((account) => ({
+          id: account.id,
+          name: account.name,
+          code: account.code,
+        }));
       },
     },
 

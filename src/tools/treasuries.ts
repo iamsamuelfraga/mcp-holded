@@ -12,7 +12,12 @@ export function getTreasuryTools(client: HoldedClient) {
       },
       readOnlyHint: true,
       handler: async () => {
-        return client.get('/treasury');
+        const treasuries = (await client.get('/treasury')) as Array<Record<string, unknown>>;
+        return treasuries.map((treasury) => ({
+          id: treasury.id,
+          name: treasury.name,
+          balance: treasury.balance,
+        }));
       },
     },
 
