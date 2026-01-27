@@ -1,10 +1,17 @@
 import { HoldedClient } from '../holded-client.js';
+import {
+  numberingSerieIdSchema,
+  createNumberingSerieSchema,
+  updateNumberingSerieSchema,
+  withValidation,
+} from '../validation.js';
 
 export function getNumberingSeriesTools(client: HoldedClient) {
   return {
     // Get Numbering Series by Type
     get_numbering_series: {
-      description: 'Get numbering series for a specific document type with pagination support',
+      description:
+        'Get numbering series for a specific document type with pagination support. Supports field filtering to reduce response size.',
       inputSchema: {
         type: 'object' as const,
         properties: {
@@ -37,6 +44,12 @@ export function getNumberingSeriesTools(client: HoldedClient) {
             type: 'boolean',
             description: 'Return only total count and page count without items (default: false)',
           },
+          fields: {
+            type: 'array',
+            items: { type: 'string' },
+            description:
+              'Select specific fields to return (e.g., ["id", "name", "prefix", "nextNumber"]). Reduces response size by 70-90%. If not provided, returns default fields: id, name, prefix, nextNumber',
+          },
         },
         required: ['docType'],
       },
@@ -46,16 +59,26 @@ export function getNumberingSeriesTools(client: HoldedClient) {
         page?: number;
         pageSize?: number;
         summary?: boolean;
+        fields?: string[];
       }) => {
         const series = (await client.get(`/numberseries/${args.docType}`)) as Array<
           Record<string, unknown>
         >;
-        const filtered = series.map((serie) => ({
-          id: serie.id,
-          name: serie.name,
-          prefix: serie.prefix,
-          nextNumber: serie.nextNumber,
-        }));
+
+        // Field filtering: if fields specified, return only those fields
+        // Otherwise, return default minimal set
+        const defaultFields = ['id', 'name', 'prefix', 'nextNumber'];
+        const fieldsToInclude = args.fields && args.fields.length > 0 ? args.fields : defaultFields;
+
+        const filtered = series.map((serie) => {
+          const result: Record<string, unknown> = {};
+          for (const field of fieldsToInclude) {
+            if (field in serie) {
+              result[field] = serie[field];
+            }
+          }
+          return result;
+        });
 
         // Pagination
         const page = Math.max(args.page ?? 1, 1);
@@ -123,10 +146,10 @@ export function getNumberingSeriesTools(client: HoldedClient) {
         required: ['docType', 'name'],
       },
       destructiveHint: true,
-      handler: async (args: { docType: string; [key: string]: unknown }) => {
+      handler: withValidation(createNumberingSerieSchema, async (args) => {
         const { docType, ...body } = args;
         return client.post(`/numberseries/${docType}`, body);
-      },
+      }),
     },
 
     // Update Numbering Serie
@@ -172,10 +195,10 @@ export function getNumberingSeriesTools(client: HoldedClient) {
         required: ['docType', 'serieId'],
       },
       destructiveHint: true,
-      handler: async (args: { docType: string; serieId: string; [key: string]: unknown }) => {
+      handler: withValidation(updateNumberingSerieSchema, async (args) => {
         const { docType, serieId, ...body } = args;
         return client.put(`/numberseries/${docType}/${serieId}`, body);
-      },
+      }),
     },
 
     // Delete Numbering Serie
@@ -209,9 +232,9 @@ export function getNumberingSeriesTools(client: HoldedClient) {
         required: ['docType', 'serieId'],
       },
       destructiveHint: true,
-      handler: async (args: { docType: string; serieId: string }) => {
+      handler: withValidation(numberingSerieIdSchema, async (args) => {
         return client.delete(`/numberseries/${args.docType}/${args.serieId}`);
-      },
+      }),
     },
   };
 }

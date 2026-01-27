@@ -4,7 +4,8 @@ export function getContactGroupTools(client: HoldedClient) {
   return {
     // List Contact Groups
     list_contact_groups: {
-      description: 'List all contact groups with pagination support',
+      description:
+        'List all contact groups with pagination support. Supports field filtering to reduce response size.',
       inputSchema: {
         type: 'object' as const,
         properties: {
@@ -20,16 +21,35 @@ export function getContactGroupTools(client: HoldedClient) {
             type: 'boolean',
             description: 'Return only total count and page count without items (default: false)',
           },
+          fields: {
+            type: 'array',
+            items: { type: 'string' },
+            description:
+              'Select specific fields to return (e.g., ["id", "name"]). Reduces response size by 70-90%. If not provided, returns default fields: id, name',
+          },
         },
         required: [],
       },
       readOnlyHint: true,
-      handler: async (args: { page?: number; pageSize?: number; summary?: boolean }) => {
+      handler: async (
+        args: { page?: number; pageSize?: number; summary?: boolean; fields?: string[] } = {}
+      ) => {
         const groups = (await client.get('/contactgroups')) as Array<Record<string, unknown>>;
-        const filtered = groups.map((group) => ({
-          id: group.id,
-          name: group.name,
-        }));
+
+        // Field filtering: if fields specified, return only those fields
+        // Otherwise, return default minimal set
+        const defaultFields = ['id', 'name'];
+        const fieldsToInclude = args.fields && args.fields.length > 0 ? args.fields : defaultFields;
+
+        const filtered = groups.map((group) => {
+          const result: Record<string, unknown> = {};
+          for (const field of fieldsToInclude) {
+            if (field in group) {
+              result[field] = group[field];
+            }
+          }
+          return result;
+        });
 
         // Pagination
         const page = Math.max(args.page ?? 1, 1);

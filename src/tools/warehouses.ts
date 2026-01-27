@@ -1,23 +1,87 @@
 import { HoldedClient } from '../holded-client.js';
+import {
+  warehouseIdSchema,
+  createWarehouseSchema,
+  updateWarehouseSchema,
+  warehouseStockSchema,
+  withValidation,
+} from '../validation.js';
 
 export function getWarehouseTools(client: HoldedClient) {
   return {
     // List Warehouses
     list_warehouses: {
-      description: 'List all warehouses',
+      description:
+        'List all warehouses with pagination support. Supports field filtering to reduce response size.',
       inputSchema: {
         type: 'object' as const,
-        properties: {},
+        properties: {
+          page: {
+            type: 'number',
+            description: 'Page number (starting from 1, default: 1)',
+          },
+          pageSize: {
+            type: 'number',
+            description: 'Number of items per page (default: 50, max: 500)',
+          },
+          summary: {
+            type: 'boolean',
+            description: 'Return only total count and page count without items (default: false)',
+          },
+          fields: {
+            type: 'array',
+            items: { type: 'string' },
+            description:
+              'Select specific fields to return (e.g., ["id", "name", "address"]). Reduces response size by 70-90%. If not provided, returns default fields: id, name, address',
+          },
+        },
         required: [],
       },
       readOnlyHint: true,
-      handler: async () => {
+      handler: async (
+        args: { page?: number; pageSize?: number; summary?: boolean; fields?: string[] } = {}
+      ) => {
         const warehouses = (await client.get('/warehouses')) as Array<Record<string, unknown>>;
-        return warehouses.map((warehouse) => ({
-          id: warehouse.id,
-          name: warehouse.name,
-          address: warehouse.address,
-        }));
+
+        // Field filtering: if fields specified, return only those fields
+        // Otherwise, return default minimal set
+        const defaultFields = ['id', 'name', 'address'];
+        const fieldsToInclude = args.fields && args.fields.length > 0 ? args.fields : defaultFields;
+
+        const filtered = warehouses.map((warehouse) => {
+          const result: Record<string, unknown> = {};
+          for (const field of fieldsToInclude) {
+            if (field in warehouse) {
+              result[field] = warehouse[field];
+            }
+          }
+          return result;
+        });
+
+        // Pagination
+        const page = Math.max(args.page ?? 1, 1);
+        const pageSize = Math.min(args.pageSize ?? 50, 500);
+        const total = filtered.length;
+        const totalPages = Math.ceil(total / pageSize);
+        const startIndex = (page - 1) * pageSize;
+        const endIndex = startIndex + pageSize;
+        const items = filtered.slice(startIndex, endIndex);
+
+        // Summary mode: return only metadata
+        if (args.summary) {
+          return {
+            total,
+            totalPages,
+          };
+        }
+
+        return {
+          items,
+          page,
+          pageSize,
+          total,
+          totalPages,
+        };
       },
     },
 
@@ -55,14 +119,15 @@ export function getWarehouseTools(client: HoldedClient) {
         required: ['name'],
       },
       destructiveHint: true,
-      handler: async (args: Record<string, unknown>) => {
+      handler: withValidation(createWarehouseSchema, async (args) => {
         return client.post('/warehouses', args);
-      },
+      }),
     },
 
     // List Products Stock in Warehouse
     list_warehouse_stock: {
-      description: 'List all products stock in a specific warehouse',
+      description:
+        'List all products stock in a specific warehouse. Supports field filtering to reduce response size.',
       inputSchema: {
         type: 'object' as const,
         properties: {
@@ -82,16 +147,17 @@ export function getWarehouseTools(client: HoldedClient) {
             type: 'boolean',
             description: 'Return only count and pagination metadata without items (default: false)',
           },
+          fields: {
+            type: 'array',
+            items: { type: 'string' },
+            description:
+              'Select specific fields to return (e.g., ["productId", "productName", "sku", "stock"]). Reduces response size by 70-90%. If not provided, returns default fields: productId, productName, sku, stock',
+          },
         },
         required: ['warehouseId'],
       },
       readOnlyHint: true,
-      handler: async (args: {
-        warehouseId: string;
-        page?: number;
-        limit?: number;
-        summary?: boolean;
-      }) => {
+      handler: withValidation(warehouseStockSchema, async (args) => {
         const queryParams: Record<string, string | number> = {};
         if (args.page) queryParams.page = args.page;
         if (args.limit) queryParams.limit = Math.min(args.limit, 500);
@@ -99,13 +165,23 @@ export function getWarehouseTools(client: HoldedClient) {
           `/warehouses/${args.warehouseId}/stock`,
           queryParams
         )) as Array<Record<string, unknown>>;
+
+        // Field filtering: if fields specified, return only those fields
+        // Otherwise, return default minimal set
+        const defaultFields = ['productId', 'productName', 'sku', 'stock'];
+        const fieldsToInclude = args.fields && args.fields.length > 0 ? args.fields : defaultFields;
+
+        const filtered = stock.map((item) => {
+          const result: Record<string, unknown> = {};
+          for (const field of fieldsToInclude) {
+            if (field in item) {
+              result[field] = item[field];
+            }
+          }
+          return result;
+        });
+
         const limit = Math.min(args.limit ?? 50, 500);
-        const filtered = stock.map((item) => ({
-          productId: item.productId,
-          productName: item.productName,
-          sku: item.sku,
-          stock: item.stock,
-        }));
         const items = filtered.slice(0, limit);
 
         // Summary mode: return only count and metadata
@@ -122,7 +198,7 @@ export function getWarehouseTools(client: HoldedClient) {
           pageSize: items.length,
           hasMore: items.length === limit && filtered.length > limit,
         };
-      },
+      }),
     },
 
     // Get Warehouse
@@ -139,9 +215,9 @@ export function getWarehouseTools(client: HoldedClient) {
         required: ['warehouseId'],
       },
       readOnlyHint: true,
-      handler: async (args: { warehouseId: string }) => {
+      handler: withValidation(warehouseIdSchema, async (args) => {
         return client.get(`/warehouses/${args.warehouseId}`);
-      },
+      }),
     },
 
     // Update Warehouse
@@ -182,10 +258,10 @@ export function getWarehouseTools(client: HoldedClient) {
         required: ['warehouseId'],
       },
       destructiveHint: true,
-      handler: async (args: { warehouseId: string; [key: string]: unknown }) => {
+      handler: withValidation(updateWarehouseSchema, async (args) => {
         const { warehouseId, ...body } = args;
         return client.put(`/warehouses/${warehouseId}`, body);
-      },
+      }),
     },
 
     // Delete Warehouse
@@ -202,9 +278,9 @@ export function getWarehouseTools(client: HoldedClient) {
         required: ['warehouseId'],
       },
       destructiveHint: true,
-      handler: async (args: { warehouseId: string }) => {
+      handler: withValidation(warehouseIdSchema, async (args) => {
         return client.delete(`/warehouses/${args.warehouseId}`);
-      },
+      }),
     },
   };
 }

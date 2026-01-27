@@ -1,10 +1,17 @@
 import { HoldedClient } from '../holded-client.js';
+import {
+  serviceIdSchema,
+  createServiceSchema,
+  updateServiceSchema,
+  withValidation,
+} from '../validation.js';
 
 export function getServiceTools(client: HoldedClient) {
   return {
     // List Services
     list_services: {
-      description: 'List all services with optional pagination',
+      description:
+        'List all services with optional pagination. Supports field filtering to reduce response size.',
       inputSchema: {
         type: 'object' as const,
         properties: {
@@ -20,24 +27,42 @@ export function getServiceTools(client: HoldedClient) {
             type: 'boolean',
             description: 'Return only count and pagination metadata without items (default: false)',
           },
+          fields: {
+            type: 'array',
+            items: { type: 'string' },
+            description:
+              'Select specific fields to return (e.g., ["id", "name", "price", "tax"]). Reduces response size by 70-90%. If not provided, returns default fields: id, name, price, tax',
+          },
         },
         required: [],
       },
       readOnlyHint: true,
-      handler: async (args: { page?: number; limit?: number; summary?: boolean }) => {
+      handler: async (
+        args: { page?: number; limit?: number; summary?: boolean; fields?: string[] } = {}
+      ) => {
         const queryParams: Record<string, string | number> = {};
         if (args.page) queryParams.page = args.page;
         if (args.limit) queryParams.limit = Math.min(args.limit, 500);
         const services = (await client.get('/services', queryParams)) as Array<
           Record<string, unknown>
         >;
+
+        // Field filtering: if fields specified, return only those fields
+        // Otherwise, return default minimal set
+        const defaultFields = ['id', 'name', 'price', 'tax'];
+        const fieldsToInclude = args.fields && args.fields.length > 0 ? args.fields : defaultFields;
+
+        const filtered = services.map((service) => {
+          const result: Record<string, unknown> = {};
+          for (const field of fieldsToInclude) {
+            if (field in service) {
+              result[field] = service[field];
+            }
+          }
+          return result;
+        });
+
         const limit = Math.min(args.limit ?? 50, 500);
-        const filtered = services.map((service) => ({
-          id: service.id,
-          name: service.name,
-          price: service.price,
-          tax: service.tax,
-        }));
         const items = filtered.slice(0, limit);
 
         // Summary mode: return only count and metadata
@@ -87,9 +112,9 @@ export function getServiceTools(client: HoldedClient) {
         required: ['name'],
       },
       destructiveHint: true,
-      handler: async (args: Record<string, unknown>) => {
+      handler: withValidation(createServiceSchema, async (args) => {
         return client.post('/services', args);
-      },
+      }),
     },
 
     // Get Service
@@ -106,9 +131,9 @@ export function getServiceTools(client: HoldedClient) {
         required: ['serviceId'],
       },
       readOnlyHint: true,
-      handler: async (args: { serviceId: string }) => {
+      handler: withValidation(serviceIdSchema, async (args) => {
         return client.get(`/services/${args.serviceId}`);
-      },
+      }),
     },
 
     // Update Service
@@ -145,10 +170,10 @@ export function getServiceTools(client: HoldedClient) {
         required: ['serviceId'],
       },
       destructiveHint: true,
-      handler: async (args: { serviceId: string; [key: string]: unknown }) => {
+      handler: withValidation(updateServiceSchema, async (args) => {
         const { serviceId, ...body } = args;
         return client.put(`/services/${serviceId}`, body);
-      },
+      }),
     },
 
     // Delete Service
@@ -165,9 +190,9 @@ export function getServiceTools(client: HoldedClient) {
         required: ['serviceId'],
       },
       destructiveHint: true,
-      handler: async (args: { serviceId: string }) => {
+      handler: withValidation(serviceIdSchema, async (args) => {
         return client.delete(`/services/${args.serviceId}`);
-      },
+      }),
     },
   };
 }

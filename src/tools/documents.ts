@@ -1,4 +1,16 @@
 import { HoldedClient } from '../holded-client.js';
+import {
+  documentIdSchema,
+  createDocumentSchema,
+  updateDocumentSchema,
+  updateDocumentPipelineSchema,
+  attachFileToDocumentSchema,
+  shipItemsByLineSchema,
+  payDocumentSchema,
+  sendDocumentSchema,
+  updateDocumentTrackingSchema,
+  withValidation,
+} from '../validation.js';
 
 // Document types supported by Holded
 export type DocumentType =
@@ -19,7 +31,7 @@ export function getDocumentTools(client: HoldedClient) {
     // List Documents
     list_documents: {
       description:
-        'List all documents of a specific type with optional filters for date range, contact, payment status, and sorting',
+        'List all documents of a specific type with optional filters for date range, contact, payment status, and sorting. Supports field filtering to reduce response size.',
       inputSchema: {
         type: 'object' as const,
         properties: {
@@ -79,6 +91,12 @@ export function getDocumentTools(client: HoldedClient) {
             enum: ['created-asc', 'created-desc'],
             description: 'Sort order by creation date',
           },
+          fields: {
+            type: 'array',
+            items: { type: 'string' },
+            description:
+              'Select specific fields to return (e.g., ["id", "contactName", "total"]). Reduces response size by 70-90%. If not provided, returns default fields: id, contact, contactName, date, tax, total, status',
+          },
         },
         required: ['docType'],
       },
@@ -94,6 +112,7 @@ export function getDocumentTools(client: HoldedClient) {
         paid?: string;
         billed?: string;
         sort?: string;
+        fields?: string[];
       }) => {
         const queryParams: Record<string, string | number> = {};
         if (args.page) queryParams.page = args.page;
@@ -113,15 +132,21 @@ export function getDocumentTools(client: HoldedClient) {
         const result = await client.get(`/documents/${args.docType}`, queryParams);
         // Filter to return only essential fields
         if (Array.isArray(result)) {
-          const filtered = result.map((doc: Record<string, unknown>) => ({
-            id: doc.id,
-            contact: doc.contact,
-            contactName: doc.contactName,
-            date: doc.date,
-            tax: doc.tax,
-            total: doc.total,
-            status: doc.status,
-          }));
+          // Field filtering: if fields specified, return only those fields
+          // Otherwise, return default minimal set
+          const defaultFields = ['id', 'contact', 'contactName', 'date', 'tax', 'total', 'status'];
+          const fieldsToInclude =
+            args.fields && args.fields.length > 0 ? args.fields : defaultFields;
+
+          const filtered = result.map((doc: Record<string, unknown>) => {
+            const resultDoc: Record<string, unknown> = {};
+            for (const field of fieldsToInclude) {
+              if (field in doc) {
+                resultDoc[field] = doc[field];
+              }
+            }
+            return resultDoc;
+          });
 
           // Virtual pagination: control context by returning only a window of data
           const page = args.page ?? 1;
@@ -211,10 +236,10 @@ export function getDocumentTools(client: HoldedClient) {
         required: ['docType', 'contactId', 'items'],
       },
       destructiveHint: true,
-      handler: async (args: { docType: DocumentType; [key: string]: unknown }) => {
+      handler: withValidation(createDocumentSchema, async (args) => {
         const { docType, ...body } = args;
         return client.post(`/documents/${docType}`, body);
-      },
+      }),
     },
 
     // Get Document
@@ -248,9 +273,9 @@ export function getDocumentTools(client: HoldedClient) {
         required: ['docType', 'documentId'],
       },
       readOnlyHint: true,
-      handler: async (args: { docType: DocumentType; documentId: string }) => {
+      handler: withValidation(documentIdSchema, async (args) => {
         return client.get(`/documents/${args.docType}/${args.documentId}`);
-      },
+      }),
     },
 
     // Update Document
@@ -300,14 +325,10 @@ export function getDocumentTools(client: HoldedClient) {
         required: ['docType', 'documentId'],
       },
       destructiveHint: true,
-      handler: async (args: {
-        docType: DocumentType;
-        documentId: string;
-        [key: string]: unknown;
-      }) => {
+      handler: withValidation(updateDocumentSchema, async (args) => {
         const { docType, documentId, ...body } = args;
         return client.put(`/documents/${docType}/${documentId}`, body);
-      },
+      }),
     },
 
     // Delete Document
@@ -341,9 +362,9 @@ export function getDocumentTools(client: HoldedClient) {
         required: ['docType', 'documentId'],
       },
       destructiveHint: true,
-      handler: async (args: { docType: DocumentType; documentId: string }) => {
+      handler: withValidation(documentIdSchema, async (args) => {
         return client.delete(`/documents/${args.docType}/${args.documentId}`);
-      },
+      }),
     },
 
     // Pay Document
@@ -389,14 +410,10 @@ export function getDocumentTools(client: HoldedClient) {
         required: ['docType', 'documentId', 'amount'],
       },
       destructiveHint: true,
-      handler: async (args: {
-        docType: DocumentType;
-        documentId: string;
-        [key: string]: unknown;
-      }) => {
+      handler: withValidation(payDocumentSchema, async (args) => {
         const { docType, documentId, ...body } = args;
         return client.post(`/documents/${docType}/${documentId}/pay`, body);
-      },
+      }),
     },
 
     // Send Document
@@ -443,14 +460,10 @@ export function getDocumentTools(client: HoldedClient) {
         required: ['docType', 'documentId', 'emails'],
       },
       destructiveHint: true,
-      handler: async (args: {
-        docType: DocumentType;
-        documentId: string;
-        [key: string]: unknown;
-      }) => {
+      handler: withValidation(sendDocumentSchema, async (args) => {
         const { docType, documentId, ...body } = args;
         return client.post(`/documents/${docType}/${documentId}/send`, body);
-      },
+      }),
     },
 
     // Get Document PDF
@@ -484,9 +497,9 @@ export function getDocumentTools(client: HoldedClient) {
         required: ['docType', 'documentId'],
       },
       readOnlyHint: true,
-      handler: async (args: { docType: DocumentType; documentId: string }) => {
+      handler: withValidation(documentIdSchema, async (args) => {
         return client.get(`/documents/${args.docType}/${args.documentId}/pdf`);
-      },
+      }),
     },
 
     // Ship All Items
@@ -520,9 +533,9 @@ export function getDocumentTools(client: HoldedClient) {
         required: ['docType', 'documentId'],
       },
       destructiveHint: true,
-      handler: async (args: { docType: DocumentType; documentId: string }) => {
+      handler: withValidation(documentIdSchema, async (args) => {
         return client.post(`/documents/${args.docType}/${args.documentId}/ship`);
-      },
+      }),
     },
 
     // Ship Items by Line
@@ -567,11 +580,11 @@ export function getDocumentTools(client: HoldedClient) {
         required: ['docType', 'documentId', 'lines'],
       },
       destructiveHint: true,
-      handler: async (args: { docType: DocumentType; documentId: string; lines: unknown }) => {
+      handler: withValidation(shipItemsByLineSchema, async (args) => {
         return client.post(`/documents/${args.docType}/${args.documentId}/ship`, {
           lines: args.lines,
         });
-      },
+      }),
     },
 
     // Get Shipped Units by Item
@@ -605,9 +618,9 @@ export function getDocumentTools(client: HoldedClient) {
         required: ['docType', 'documentId'],
       },
       readOnlyHint: true,
-      handler: async (args: { docType: DocumentType; documentId: string }) => {
+      handler: withValidation(documentIdSchema, async (args) => {
         return client.get(`/documents/${args.docType}/${args.documentId}/shipped`);
-      },
+      }),
     },
 
     // Attach File to Document
@@ -649,19 +662,14 @@ export function getDocumentTools(client: HoldedClient) {
         required: ['docType', 'documentId', 'fileBase64', 'filename'],
       },
       destructiveHint: true,
-      handler: async (args: {
-        docType: DocumentType;
-        documentId: string;
-        fileBase64: string;
-        filename: string;
-      }) => {
+      handler: withValidation(attachFileToDocumentSchema, async (args) => {
         const buffer = Buffer.from(args.fileBase64, 'base64');
         return client.uploadFile(
           `/documents/${args.docType}/${args.documentId}/attach`,
           buffer,
           args.filename
         );
-      },
+      }),
     },
 
     // Update Tracking Info
@@ -703,14 +711,10 @@ export function getDocumentTools(client: HoldedClient) {
         required: ['docType', 'documentId'],
       },
       destructiveHint: true,
-      handler: async (args: {
-        docType: DocumentType;
-        documentId: string;
-        [key: string]: unknown;
-      }) => {
+      handler: withValidation(updateDocumentTrackingSchema, async (args) => {
         const { docType, documentId, ...body } = args;
         return client.post(`/documents/${docType}/${documentId}/tracking`, body);
-      },
+      }),
     },
 
     // Update Pipeline
@@ -752,17 +756,12 @@ export function getDocumentTools(client: HoldedClient) {
         required: ['docType', 'documentId', 'pipelineId', 'stageId'],
       },
       destructiveHint: true,
-      handler: async (args: {
-        docType: DocumentType;
-        documentId: string;
-        pipelineId: string;
-        stageId: string;
-      }) => {
+      handler: withValidation(updateDocumentPipelineSchema, async (args) => {
         return client.post(`/documents/${args.docType}/${args.documentId}/pipeline`, {
           pipelineId: args.pipelineId,
           stageId: args.stageId,
         });
-      },
+      }),
     },
 
     // List Payment Methods

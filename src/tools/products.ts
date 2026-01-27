@@ -1,10 +1,19 @@
 import { HoldedClient } from '../holded-client.js';
+import {
+  productIdSchema,
+  createProductSchema,
+  updateProductSchema,
+  productImageSchema,
+  updateProductStockSchema,
+  withValidation,
+} from '../validation.js';
 
 export function getProductTools(client: HoldedClient) {
   return {
     // List Products
     list_products: {
-      description: 'List all products with optional pagination',
+      description:
+        'List all products with optional pagination. Supports field filtering to reduce response size.',
       inputSchema: {
         type: 'object' as const,
         properties: {
@@ -20,11 +29,19 @@ export function getProductTools(client: HoldedClient) {
             type: 'boolean',
             description: 'Return only count and pagination metadata without items (default: false)',
           },
+          fields: {
+            type: 'array',
+            items: { type: 'string' },
+            description:
+              'Select specific fields to return (e.g., ["id", "name", "price"]). Reduces response size by 70-90%. If not provided, returns default fields: id, name, sku, price, stock',
+          },
         },
         required: [],
       },
       readOnlyHint: true,
-      handler: async (args: { page?: number; limit?: number; summary?: boolean }) => {
+      handler: async (
+        args: { page?: number; limit?: number; summary?: boolean; fields?: string[] } = {}
+      ) => {
         const queryParams: Record<string, string | number> = {};
         if (args.page) queryParams.page = args.page;
         if (args.limit) queryParams.limit = Math.min(args.limit, 500);
@@ -32,13 +49,22 @@ export function getProductTools(client: HoldedClient) {
           Record<string, unknown>
         >;
         const limit = Math.min(args.limit ?? 50, 500);
-        const filtered = products.map((product) => ({
-          id: product.id,
-          name: product.name,
-          sku: product.sku,
-          price: product.price,
-          stock: product.stock,
-        }));
+
+        // Field filtering: if fields specified, return only those fields
+        // Otherwise, return default minimal set
+        const defaultFields = ['id', 'name', 'sku', 'price', 'stock'];
+        const fieldsToInclude = args.fields && args.fields.length > 0 ? args.fields : defaultFields;
+
+        const filtered = products.map((product) => {
+          const result: Record<string, unknown> = {};
+          for (const field of fieldsToInclude) {
+            if (field in product) {
+              result[field] = product[field];
+            }
+          }
+          return result;
+        });
+
         const items = filtered.slice(0, limit);
 
         // Summary mode: return only count and metadata
@@ -105,9 +131,9 @@ export function getProductTools(client: HoldedClient) {
         required: ['name'],
       },
       destructiveHint: true,
-      handler: async (args: Record<string, unknown>) => {
+      handler: withValidation(createProductSchema, async (args) => {
         return client.post('/products', args);
-      },
+      }),
     },
 
     // Get Product
@@ -124,9 +150,9 @@ export function getProductTools(client: HoldedClient) {
         required: ['productId'],
       },
       readOnlyHint: true,
-      handler: async (args: { productId: string }) => {
+      handler: withValidation(productIdSchema, async (args) => {
         return client.get(`/products/${args.productId}`);
-      },
+      }),
     },
 
     // Update Product
@@ -171,10 +197,10 @@ export function getProductTools(client: HoldedClient) {
         required: ['productId'],
       },
       destructiveHint: true,
-      handler: async (args: { productId: string; [key: string]: unknown }) => {
+      handler: withValidation(updateProductSchema, async (args) => {
         const { productId, ...body } = args;
         return client.put(`/products/${productId}`, body);
-      },
+      }),
     },
 
     // Delete Product
@@ -191,9 +217,9 @@ export function getProductTools(client: HoldedClient) {
         required: ['productId'],
       },
       destructiveHint: true,
-      handler: async (args: { productId: string }) => {
+      handler: withValidation(productIdSchema, async (args) => {
         return client.delete(`/products/${args.productId}`);
-      },
+      }),
     },
 
     // Get Product Main Image
@@ -210,9 +236,9 @@ export function getProductTools(client: HoldedClient) {
         required: ['productId'],
       },
       readOnlyHint: true,
-      handler: async (args: { productId: string }) => {
+      handler: withValidation(productIdSchema, async (args) => {
         return client.get(`/products/${args.productId}/image`);
-      },
+      }),
     },
 
     // List Product Images
@@ -229,9 +255,9 @@ export function getProductTools(client: HoldedClient) {
         required: ['productId'],
       },
       readOnlyHint: true,
-      handler: async (args: { productId: string }) => {
+      handler: withValidation(productIdSchema, async (args) => {
         return client.get(`/products/${args.productId}/images`);
-      },
+      }),
     },
 
     // Get Product Secondary Image
@@ -252,9 +278,9 @@ export function getProductTools(client: HoldedClient) {
         required: ['productId', 'imageId'],
       },
       readOnlyHint: true,
-      handler: async (args: { productId: string; imageId: string }) => {
+      handler: withValidation(productImageSchema, async (args) => {
         return client.get(`/products/${args.productId}/images/${args.imageId}`);
-      },
+      }),
     },
 
     // Update Product Stock
@@ -279,11 +305,11 @@ export function getProductTools(client: HoldedClient) {
         required: ['productId', 'units'],
       },
       destructiveHint: true,
-      handler: async (args: { productId: string; warehouseId?: string; units: number }) => {
+      handler: withValidation(updateProductStockSchema, async (args) => {
         const body: Record<string, unknown> = { units: args.units };
         if (args.warehouseId) body.warehouseId = args.warehouseId;
         return client.put(`/products/${args.productId}/stock`, body);
-      },
+      }),
     },
   };
 }

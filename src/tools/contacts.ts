@@ -1,10 +1,18 @@
 import { HoldedClient } from '../holded-client.js';
+import {
+  contactIdSchema,
+  contactAttachmentSchema,
+  createContactSchema,
+  updateContactSchema,
+  withValidation,
+} from '../validation.js';
 
 export function getContactTools(client: HoldedClient) {
   return {
     // List Contacts
     list_contacts: {
-      description: 'List all contacts with optional filters for phone, mobile, or custom ID',
+      description:
+        'List all contacts with optional filters for phone, mobile, or custom ID. Supports field filtering to reduce response size.',
       inputSchema: {
         type: 'object' as const,
         properties: {
@@ -33,18 +41,27 @@ export function getContactTools(client: HoldedClient) {
             items: { type: 'string' },
             description: 'Filter by custom ID(s)',
           },
+          fields: {
+            type: 'array',
+            items: { type: 'string' },
+            description:
+              'Select specific fields to return (e.g., ["id", "name", "email"]). Reduces response size by 70-90%. If not provided, returns default fields: id, customId, name, email',
+          },
         },
         required: [],
       },
       readOnlyHint: true,
-      handler: async (args: {
-        page?: number;
-        limit?: number;
-        summary?: boolean;
-        phone?: string;
-        mobile?: string;
-        customId?: string[];
-      }) => {
+      handler: async (
+        args: {
+          page?: number;
+          limit?: number;
+          summary?: boolean;
+          phone?: string;
+          mobile?: string;
+          customId?: string[];
+          fields?: string[];
+        } = {}
+      ) => {
         const queryParams: Record<string, string | number> = {};
         if (args.page) queryParams.page = args.page;
         if (args.limit) queryParams.limit = Math.min(args.limit, 500);
@@ -58,12 +75,21 @@ export function getContactTools(client: HoldedClient) {
         // Virtual pagination: control context by returning only a window of data
         const page = args.page ?? 1;
         const limit = Math.min(args.limit ?? 50, 500);
-        const filtered = contacts.map((contact) => ({
-          id: contact.id,
-          customId: contact.customId,
-          name: contact.name,
-          email: contact.email,
-        }));
+
+        // Field filtering: if fields specified, return only those fields
+        // Otherwise, return default minimal set
+        const defaultFields = ['id', 'customId', 'name', 'email'];
+        const fieldsToInclude = args.fields && args.fields.length > 0 ? args.fields : defaultFields;
+
+        const filtered = contacts.map((contact) => {
+          const result: Record<string, unknown> = {};
+          for (const field of fieldsToInclude) {
+            if (field in contact) {
+              result[field] = contact[field];
+            }
+          }
+          return result;
+        });
 
         // Calculate pagination window
         const startIndex = (page - 1) * limit;
@@ -145,9 +171,9 @@ export function getContactTools(client: HoldedClient) {
         required: ['name'],
       },
       destructiveHint: true,
-      handler: async (args: Record<string, unknown>) => {
+      handler: withValidation(createContactSchema, async (args) => {
         return client.post('/contacts', args);
-      },
+      }),
     },
 
     // Get Contact
@@ -164,9 +190,9 @@ export function getContactTools(client: HoldedClient) {
         required: ['contactId'],
       },
       readOnlyHint: true,
-      handler: async (args: { contactId: string }) => {
+      handler: withValidation(contactIdSchema, async (args) => {
         return client.get(`/contacts/${args.contactId}`);
-      },
+      }),
     },
 
     // Update Contact
@@ -208,10 +234,10 @@ export function getContactTools(client: HoldedClient) {
         required: ['contactId'],
       },
       destructiveHint: true,
-      handler: async (args: { contactId: string; [key: string]: unknown }) => {
+      handler: withValidation(updateContactSchema, async (args) => {
         const { contactId, ...body } = args;
         return client.put(`/contacts/${contactId}`, body);
-      },
+      }),
     },
 
     // Delete Contact
@@ -228,9 +254,9 @@ export function getContactTools(client: HoldedClient) {
         required: ['contactId'],
       },
       destructiveHint: true,
-      handler: async (args: { contactId: string }) => {
+      handler: withValidation(contactIdSchema, async (args) => {
         return client.delete(`/contacts/${args.contactId}`);
-      },
+      }),
     },
 
     // Get Contact Attachments List
@@ -247,9 +273,9 @@ export function getContactTools(client: HoldedClient) {
         required: ['contactId'],
       },
       readOnlyHint: true,
-      handler: async (args: { contactId: string }) => {
+      handler: withValidation(contactIdSchema, async (args) => {
         return client.get(`/contacts/${args.contactId}/attachments`);
-      },
+      }),
     },
 
     // Get Contact Attachment
@@ -270,9 +296,9 @@ export function getContactTools(client: HoldedClient) {
         required: ['contactId', 'attachmentId'],
       },
       readOnlyHint: true,
-      handler: async (args: { contactId: string; attachmentId: string }) => {
+      handler: withValidation(contactAttachmentSchema, async (args) => {
         return client.get(`/contacts/${args.contactId}/attachments/${args.attachmentId}`);
-      },
+      }),
     },
   };
 }

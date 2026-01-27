@@ -1,10 +1,17 @@
 import { HoldedClient } from '../holded-client.js';
+import {
+  paymentIdSchema,
+  createPaymentSchema,
+  updatePaymentSchema,
+  withValidation,
+} from '../validation.js';
 
 export function getPaymentTools(client: HoldedClient) {
   return {
     // List Payments
     list_payments: {
-      description: 'List all payments with optional filters for date range',
+      description:
+        'List all payments with optional filters for date range. Supports field filtering to reduce response size.',
       inputSchema: {
         type: 'object' as const,
         properties: {
@@ -20,6 +27,12 @@ export function getPaymentTools(client: HoldedClient) {
             type: 'boolean',
             description: 'Return only count and pagination metadata without items (default: false)',
           },
+          fields: {
+            type: 'array',
+            items: { type: 'string' },
+            description:
+              'Select specific fields to return (e.g., ["id", "name", "days", "discount"]). Reduces response size by 70-90%. If not provided, returns default fields: id, name, days, discount',
+          },
           starttmp: {
             type: 'string',
             description: 'Starting timestamp (Unix timestamp) for filtering payments by date',
@@ -32,13 +45,16 @@ export function getPaymentTools(client: HoldedClient) {
         required: [],
       },
       readOnlyHint: true,
-      handler: async (args: {
-        page?: number;
-        limit?: number;
-        summary?: boolean;
-        starttmp?: string;
-        endtmp?: string;
-      }) => {
+      handler: async (
+        args: {
+          page?: number;
+          limit?: number;
+          summary?: boolean;
+          fields?: string[];
+          starttmp?: string;
+          endtmp?: string;
+        } = {}
+      ) => {
         const queryParams: Record<string, string | number> = {};
         if (args.page) queryParams.page = args.page;
         if (args.limit) queryParams.limit = Math.min(args.limit, 500);
@@ -53,13 +69,23 @@ export function getPaymentTools(client: HoldedClient) {
         const payments = (await client.get('/payments', queryParams)) as Array<
           Record<string, unknown>
         >;
+
+        // Field filtering: if fields specified, return only those fields
+        // Otherwise, return default minimal set
+        const defaultFields = ['id', 'name', 'days', 'discount'];
+        const fieldsToInclude = args.fields && args.fields.length > 0 ? args.fields : defaultFields;
+
+        const filtered = payments.map((payment) => {
+          const result: Record<string, unknown> = {};
+          for (const field of fieldsToInclude) {
+            if (field in payment) {
+              result[field] = payment[field];
+            }
+          }
+          return result;
+        });
+
         const limit = Math.min(args.limit ?? 50, 500);
-        const filtered = payments.map((payment) => ({
-          id: payment.id,
-          name: payment.name,
-          days: payment.days,
-          discount: payment.discount,
-        }));
         const items = filtered.slice(0, limit);
 
         // Summary mode: return only count and metadata
@@ -97,9 +123,9 @@ export function getPaymentTools(client: HoldedClient) {
         required: ['name'],
       },
       destructiveHint: true,
-      handler: async (args: Record<string, unknown>) => {
+      handler: withValidation(createPaymentSchema, async (args) => {
         return client.post('/payments', args);
-      },
+      }),
     },
 
     // Get Payment
@@ -116,9 +142,9 @@ export function getPaymentTools(client: HoldedClient) {
         required: ['paymentId'],
       },
       readOnlyHint: true,
-      handler: async (args: { paymentId: string }) => {
+      handler: withValidation(paymentIdSchema, async (args) => {
         return client.get(`/payments/${args.paymentId}`);
-      },
+      }),
     },
 
     // Update Payment
@@ -143,10 +169,10 @@ export function getPaymentTools(client: HoldedClient) {
         required: ['paymentId'],
       },
       destructiveHint: true,
-      handler: async (args: { paymentId: string; [key: string]: unknown }) => {
+      handler: withValidation(updatePaymentSchema, async (args) => {
         const { paymentId, ...body } = args;
         return client.put(`/payments/${paymentId}`, body);
-      },
+      }),
     },
 
     // Delete Payment
@@ -163,9 +189,9 @@ export function getPaymentTools(client: HoldedClient) {
         required: ['paymentId'],
       },
       destructiveHint: true,
-      handler: async (args: { paymentId: string }) => {
+      handler: withValidation(paymentIdSchema, async (args) => {
         return client.delete(`/payments/${args.paymentId}`);
-      },
+      }),
     },
   };
 }

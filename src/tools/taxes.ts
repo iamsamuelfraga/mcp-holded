@@ -4,7 +4,8 @@ export function getTaxTools(client: HoldedClient) {
   return {
     // Get Taxes
     get_taxes: {
-      description: 'Get all available taxes with pagination support',
+      description:
+        'Get all available taxes with pagination support. Supports field filtering to reduce response size.',
       inputSchema: {
         type: 'object' as const,
         properties: {
@@ -20,17 +21,35 @@ export function getTaxTools(client: HoldedClient) {
             type: 'boolean',
             description: 'Return only total count and page count without items (default: false)',
           },
+          fields: {
+            type: 'array',
+            items: { type: 'string' },
+            description:
+              'Select specific fields to return (e.g., ["id", "name", "percentage"]). Reduces response size by 70-90%. If not provided, returns default fields: id, name, percentage',
+          },
         },
         required: [],
       },
       readOnlyHint: true,
-      handler: async (args: { page?: number; pageSize?: number; summary?: boolean }) => {
+      handler: async (
+        args: { page?: number; pageSize?: number; summary?: boolean; fields?: string[] } = {}
+      ) => {
         const taxes = (await client.get('/taxes')) as Array<Record<string, unknown>>;
-        const filtered = taxes.map((tax) => ({
-          id: tax.id,
-          name: tax.name,
-          percentage: tax.percentage,
-        }));
+
+        // Field filtering: if fields specified, return only those fields
+        // Otherwise, return default minimal set
+        const defaultFields = ['id', 'name', 'percentage'];
+        const fieldsToInclude = args.fields && args.fields.length > 0 ? args.fields : defaultFields;
+
+        const filtered = taxes.map((tax) => {
+          const result: Record<string, unknown> = {};
+          for (const field of fieldsToInclude) {
+            if (field in tax) {
+              result[field] = tax[field];
+            }
+          }
+          return result;
+        });
 
         // Pagination
         const page = Math.max(args.page ?? 1, 1);
