@@ -157,4 +157,99 @@ describe('Contact Tools', () => {
       expect(client.get).toHaveBeenCalledWith('/contacts/contact-123/attachments/attach-456');
     });
   });
+
+  describe('Virtual pagination', () => {
+    it('should return first page of results with page=1', async () => {
+      // Mock 100 contacts
+      const mockContacts = Array.from({ length: 100 }, (_, i) => ({
+        id: `contact-${i + 1}`,
+        name: `Contact ${i + 1}`,
+        email: `contact${i + 1}@example.com`,
+        customId: `CUST-${i + 1}`,
+      }));
+      client.get = vi.fn().mockResolvedValue(mockContacts);
+
+      const result = (await tools.list_contacts.handler({ page: 1, limit: 10 })) as any;
+
+      expect(result.items).toHaveLength(10);
+      expect(result.items[0].id).toBe('contact-1');
+      expect(result.items[9].id).toBe('contact-10');
+      expect(result.page).toBe(1);
+      expect(result.totalItems).toBe(100);
+      expect(result.totalPages).toBe(10);
+      expect(result.hasMore).toBe(true);
+    });
+
+    it('should return second page of results with page=2', async () => {
+      const mockContacts = Array.from({ length: 100 }, (_, i) => ({
+        id: `contact-${i + 1}`,
+        name: `Contact ${i + 1}`,
+        email: `contact${i + 1}@example.com`,
+        customId: `CUST-${i + 1}`,
+      }));
+      client.get = vi.fn().mockResolvedValue(mockContacts);
+
+      const result = (await tools.list_contacts.handler({ page: 2, limit: 10 })) as any;
+
+      expect(result.items).toHaveLength(10);
+      expect(result.items[0].id).toBe('contact-11');
+      expect(result.items[9].id).toBe('contact-20');
+      expect(result.page).toBe(2);
+      expect(result.hasMore).toBe(true);
+    });
+
+    it('should return last page with hasMore=false', async () => {
+      const mockContacts = Array.from({ length: 25 }, (_, i) => ({
+        id: `contact-${i + 1}`,
+        name: `Contact ${i + 1}`,
+        email: `contact${i + 1}@example.com`,
+        customId: `CUST-${i + 1}`,
+      }));
+      client.get = vi.fn().mockResolvedValue(mockContacts);
+
+      const result = (await tools.list_contacts.handler({ page: 3, limit: 10 })) as any;
+
+      expect(result.items).toHaveLength(5);
+      expect(result.items[0].id).toBe('contact-21');
+      expect(result.items[4].id).toBe('contact-25');
+      expect(result.hasMore).toBe(false);
+    });
+
+    it('should return summary with pagination metadata', async () => {
+      const mockContacts = Array.from({ length: 75 }, (_, i) => ({
+        id: `contact-${i + 1}`,
+        name: `Contact ${i + 1}`,
+        email: `contact${i + 1}@example.com`,
+        customId: `CUST-${i + 1}`,
+      }));
+      client.get = vi.fn().mockResolvedValue(mockContacts);
+
+      const result = (await tools.list_contacts.handler({
+        page: 2,
+        limit: 20,
+        summary: true,
+      })) as any;
+
+      expect(result.count).toBe(75);
+      expect(result.totalPages).toBe(4);
+      expect(result.currentPage).toBe(2);
+      expect(result.hasMore).toBe(true);
+    });
+
+    it('should default to page 1 when page is not specified', async () => {
+      const mockContacts = Array.from({ length: 30 }, (_, i) => ({
+        id: `contact-${i + 1}`,
+        name: `Contact ${i + 1}`,
+        email: `contact${i + 1}@example.com`,
+        customId: `CUST-${i + 1}`,
+      }));
+      client.get = vi.fn().mockResolvedValue(mockContacts);
+
+      const result = (await tools.list_contacts.handler({ limit: 10 })) as any;
+
+      expect(result.items).toHaveLength(10);
+      expect(result.items[0].id).toBe('contact-1');
+      expect(result.page).toBe(1);
+    });
+  });
 });

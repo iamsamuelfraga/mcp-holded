@@ -262,4 +262,127 @@ describe('Document Tools', () => {
       expect(client.get).toHaveBeenCalledWith('/paymentmethods');
     });
   });
+
+  describe('Virtual pagination', () => {
+    it('should return first page of results with page=1', async () => {
+      // Mock 100 documents
+      const mockDocuments = Array.from({ length: 100 }, (_, i) => ({
+        id: `doc-${i + 1}`,
+        contact: `contact-${i + 1}`,
+        contactName: `Contact ${i + 1}`,
+        date: 1700000000 + i * 86400,
+        tax: 21,
+        total: (i + 1) * 100,
+        status: 1,
+      }));
+      client.get = vi.fn().mockResolvedValue(mockDocuments);
+
+      const result = (await tools.list_documents.handler({
+        docType: 'invoice',
+        page: 1,
+        limit: 10,
+      })) as any;
+
+      expect(result.items).toHaveLength(10);
+      expect(result.items[0].id).toBe('doc-1');
+      expect(result.items[9].id).toBe('doc-10');
+      expect(result.page).toBe(1);
+      expect(result.totalItems).toBe(100);
+      expect(result.totalPages).toBe(10);
+      expect(result.hasMore).toBe(true);
+    });
+
+    it('should return second page of results with page=2', async () => {
+      const mockDocuments = Array.from({ length: 100 }, (_, i) => ({
+        id: `doc-${i + 1}`,
+        contact: `contact-${i + 1}`,
+        contactName: `Contact ${i + 1}`,
+        date: 1700000000 + i * 86400,
+        tax: 21,
+        total: (i + 1) * 100,
+        status: 1,
+      }));
+      client.get = vi.fn().mockResolvedValue(mockDocuments);
+
+      const result = (await tools.list_documents.handler({
+        docType: 'invoice',
+        page: 2,
+        limit: 10,
+      })) as any;
+
+      expect(result.items).toHaveLength(10);
+      expect(result.items[0].id).toBe('doc-11');
+      expect(result.items[9].id).toBe('doc-20');
+      expect(result.page).toBe(2);
+      expect(result.hasMore).toBe(true);
+    });
+
+    it('should return last page with hasMore=false', async () => {
+      const mockDocuments = Array.from({ length: 25 }, (_, i) => ({
+        id: `doc-${i + 1}`,
+        contact: `contact-${i + 1}`,
+        contactName: `Contact ${i + 1}`,
+        date: 1700000000 + i * 86400,
+        tax: 21,
+        total: (i + 1) * 100,
+        status: 1,
+      }));
+      client.get = vi.fn().mockResolvedValue(mockDocuments);
+
+      const result = (await tools.list_documents.handler({
+        docType: 'invoice',
+        page: 3,
+        limit: 10,
+      })) as any;
+
+      expect(result.items).toHaveLength(5);
+      expect(result.items[0].id).toBe('doc-21');
+      expect(result.items[4].id).toBe('doc-25');
+      expect(result.hasMore).toBe(false);
+    });
+
+    it('should return summary with pagination metadata', async () => {
+      const mockDocuments = Array.from({ length: 75 }, (_, i) => ({
+        id: `doc-${i + 1}`,
+        contact: `contact-${i + 1}`,
+        contactName: `Contact ${i + 1}`,
+        date: 1700000000 + i * 86400,
+        tax: 21,
+        total: (i + 1) * 100,
+        status: 1,
+      }));
+      client.get = vi.fn().mockResolvedValue(mockDocuments);
+
+      const result = (await tools.list_documents.handler({
+        docType: 'invoice',
+        page: 2,
+        limit: 20,
+        summary: true,
+      })) as any;
+
+      expect(result.count).toBe(75);
+      expect(result.totalPages).toBe(4);
+      expect(result.currentPage).toBe(2);
+      expect(result.hasMore).toBe(true);
+    });
+
+    it('should default to page 1 when page is not specified', async () => {
+      const mockDocuments = Array.from({ length: 30 }, (_, i) => ({
+        id: `doc-${i + 1}`,
+        contact: `contact-${i + 1}`,
+        contactName: `Contact ${i + 1}`,
+        date: 1700000000 + i * 86400,
+        tax: 21,
+        total: (i + 1) * 100,
+        status: 1,
+      }));
+      client.get = vi.fn().mockResolvedValue(mockDocuments);
+
+      const result = (await tools.list_documents.handler({ docType: 'invoice', limit: 10 })) as any;
+
+      expect(result.items).toHaveLength(10);
+      expect(result.items[0].id).toBe('doc-1');
+      expect(result.page).toBe(1);
+    });
+  });
 });
