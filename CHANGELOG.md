@@ -1,3 +1,15 @@
+# [1.4.0](https://github.com/iamsamuelfraga/mcp-holded/compare/v1.3.2...v1.4.0) (2026-01-27)
+
+
+### Features
+
+* implement virtual pagination in contacts and documents tools ([7b011ca](https://github.com/iamsamuelfraga/mcp-holded/commit/7b011cadd87d35c1af0c71598104c8c9459d3631))
+
+
+### Performance Improvements
+
+* optimize MCP response payloads and add pagination features ([a3403e6](https://github.com/iamsamuelfraga/mcp-holded/commit/a3403e6c62fb68acfa978cf74d175843544eb2c9))
+
 ## [1.3.2](https://github.com/iamsamuelfraga/mcp-holded/compare/v1.3.1...v1.3.2) (2025-12-31)
 
 
