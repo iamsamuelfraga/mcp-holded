@@ -122,22 +122,33 @@ export function getDocumentTools(client: HoldedClient) {
             total: doc.total,
             status: doc.status,
           }));
+
+          // Virtual pagination: control context by returning only a window of data
+          const page = args.page ?? 1;
           const limit = Math.min(args.limit ?? 50, 500);
-          const items = filtered.slice(0, limit);
+
+          // Calculate pagination window
+          const startIndex = (page - 1) * limit;
+          const endIndex = startIndex + limit;
+          const items = filtered.slice(startIndex, endIndex);
 
           // Summary mode: return only count and metadata
           if (args.summary) {
             return {
-              count: items.length,
-              hasMore: items.length === limit && filtered.length > limit,
+              count: filtered.length,
+              totalPages: Math.ceil(filtered.length / limit),
+              currentPage: page,
+              hasMore: endIndex < filtered.length,
             };
           }
 
           return {
             items,
-            page: args.page,
+            page,
             pageSize: items.length,
-            hasMore: items.length === limit && filtered.length > limit,
+            totalItems: filtered.length,
+            totalPages: Math.ceil(filtered.length / limit),
+            hasMore: endIndex < filtered.length,
           };
         }
         return result;
