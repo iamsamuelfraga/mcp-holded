@@ -1,3 +1,15 @@
+# [1.5.0](https://github.com/iamsamuelfraga/mcp-holded/compare/v1.4.0...v1.5.0) (2026-01-27)
+
+
+### Bug Fixes
+
+* resolve TypeScript compilation error with FormData type casting ([3a65e2e](https://github.com/iamsamuelfraga/mcp-holded/commit/3a65e2e20113416271a0b8469059ab041d1b244f))
+
+
+### Features
+
+* add enterprise-grade improvements ([bdee98a](https://github.com/iamsamuelfraga/mcp-holded/commit/bdee98aaa41d62419761a1beb74a6c282980bb19))
+
 # [1.4.0](https://github.com/iamsamuelfraga/mcp-holded/compare/v1.3.2...v1.4.0) (2026-01-27)
 
 
