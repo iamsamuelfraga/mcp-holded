@@ -232,6 +232,10 @@ export function getDocumentTools(client: HoldedClient) {
             type: 'string',
             description: 'Currency code (e.g., EUR, USD)',
           },
+          invoiceNum: {
+            type: 'string',
+            description: 'Document reference number (e.g. invoice number from supplier)',
+          },
         },
         required: ['docType', 'contactId', 'items'],
       },
