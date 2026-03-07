@@ -201,7 +201,6 @@ export const updateDocumentSchema = documentIdSchema.merge(
     date: z.number().optional(),
     notes: z.string().optional(),
     currency: z.string().optional(),
-    invoiceNum: z.string().optional(),
   })
 );
 
