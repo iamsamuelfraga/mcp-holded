@@ -188,7 +188,7 @@ export const createDocumentSchema = z.object({
   ]),
   contactId: z.string().min(1),
   items: z.array(z.unknown()),
-  date: z.string().optional(),
+  date: z.number().optional(),
   notes: z.string().optional(),
   currency: z.string().optional(),
 });
@@ -197,7 +197,7 @@ export const updateDocumentSchema = documentIdSchema.merge(
   z.object({
     contactId: z.string().optional(),
     items: z.array(z.unknown()).optional(),
-    date: z.string().optional(),
+    date: z.number().optional(),
     notes: z.string().optional(),
     currency: z.string().optional(),
   })
