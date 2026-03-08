@@ -329,6 +329,10 @@ export function getDocumentTools(client: HoldedClient) {
             type: 'string',
             description: 'Notes for the document',
           },
+          invoiceNum: {
+            type: 'string',
+            description: 'Document reference number (e.g. invoice number from supplier)',
+          },
           salesChannelId: {
             type: 'string',
             description: 'Sales channel ID to associate with the document',
