@@ -20,6 +20,14 @@ import { getContactGroupTools } from './tools/contact-groups.js';
 import { getRemittanceTools } from './tools/remittances.js';
 import { getServiceTools } from './tools/services.js';
 import { getWarehouseTools } from './tools/warehouses.js';
+import { getAccountingTools } from './tools/accounting.js';
+import { AccountingClient } from './accounting-client.js';
+import { CrmClient } from './crm-client.js';
+import { ProjectsClient } from './projects-client.js';
+import { TeamClient } from './team-client.js';
+import { getCrmTools } from './tools/crm.js';
+import { getProjectsTools } from './tools/projects.js';
+import { getTeamTools } from './tools/team.js';
 
 // Initialize multi-tenancy support
 const tenantConfigs = loadTenantConfigs();
@@ -37,6 +45,14 @@ if (!defaultTenant) {
   process.exit(1);
 }
 const client = defaultTenant.client;
+
+// Create accounting client with the same API key
+const accountingClient = new AccountingClient(process.env.HOLDED_API_KEY || '');
+
+// Create CRM, Projects, and Team clients with the same API key
+const crmClient = new CrmClient(process.env.HOLDED_API_KEY || '');
+const projectsClient = new ProjectsClient(process.env.HOLDED_API_KEY || '');
+const teamClient = new TeamClient(process.env.HOLDED_API_KEY || '');
 
 // Initialize rate limiter with per-tool configuration
 const rateLimiter = new RateLimiter({
@@ -73,6 +89,10 @@ const allTools = {
   ...getRemittanceTools(client),
   ...getServiceTools(client),
   ...getWarehouseTools(client),
+  ...getAccountingTools(accountingClient),
+  ...getCrmTools(crmClient),
+  ...getProjectsTools(projectsClient),
+  ...getTeamTools(teamClient),
 };
 
 // Create server
@@ -157,6 +177,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     ...getRemittanceTools(tenantContext.client),
     ...getServiceTools(tenantContext.client),
     ...getWarehouseTools(tenantContext.client),
+    ...getAccountingTools(accountingClient),
+    ...getCrmTools(crmClient),
+    ...getProjectsTools(projectsClient),
+    ...getTeamTools(teamClient),
   };
 
   const tool = tenantTools[name as keyof typeof tenantTools];
