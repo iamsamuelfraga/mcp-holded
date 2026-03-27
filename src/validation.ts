@@ -193,6 +193,7 @@ export const createDocumentSchema = z.object({
   currency: z.string().optional(),
   invoiceNum: z.string().optional(),
   salesChannelId: z.string().optional(),
+  expAccountId: z.string().optional(),
 });
 
 export const updateDocumentSchema = documentIdSchema.merge(
@@ -204,6 +205,7 @@ export const updateDocumentSchema = documentIdSchema.merge(
     currency: z.string().optional(),
     invoiceNum: z.string().optional(),
     salesChannelId: z.string().optional(),
+    expAccountId: z.string().optional(),
   })
 );
 

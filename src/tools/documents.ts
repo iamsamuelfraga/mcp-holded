@@ -240,6 +240,10 @@ export function getDocumentTools(client: HoldedClient) {
             type: 'string',
             description: 'Sales channel ID to associate with the document',
           },
+          expAccountId: {
+            type: 'string',
+            description: 'Expense account ID to associate with the expense document',
+          },
         },
         required: ['docType', 'contactId', 'items'],
       },
@@ -336,6 +340,10 @@ export function getDocumentTools(client: HoldedClient) {
           salesChannelId: {
             type: 'string',
             description: 'Sales channel ID to associate with the document',
+          },
+          expAccountId: {
+            type: 'string',
+            description: 'Expense account ID to associate with the expense document',
           },
         },
         required: ['docType', 'documentId'],
