@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { createMockClient } from './mock-client.js';
 import { getDocumentTools } from '../tools/documents.js';
+import { createDocumentSchema, updateDocumentSchema } from '../validation.js';
 
 describe('Document Tools', () => {
   let client: ReturnType<typeof createMockClient>;
@@ -108,6 +109,64 @@ describe('Document Tools', () => {
         currency: 'EUR',
       });
     });
+
+    it('should forward taxes arrays for purchase line items', async () => {
+      const args = {
+        docType: 'purchase' as const,
+        contactId: 'supplier-123',
+        invoiceNum: 'SUP-2026-001',
+        items: [
+          {
+            name: 'Gasto con IVA 21%',
+            units: 1,
+            subtotal: 100,
+            taxes: ['tax-21'],
+          },
+          {
+            name: 'Gasto con IVA 10%',
+            units: 1,
+            subtotal: 50,
+            taxes: ['tax-10'],
+          },
+        ],
+      };
+      await tools.create_document.handler(args);
+      expect(client.post).toHaveBeenCalledWith('/documents/purchase', {
+        contactId: 'supplier-123',
+        invoiceNum: 'SUP-2026-001',
+        items: [
+          {
+            name: 'Gasto con IVA 21%',
+            units: 1,
+            subtotal: 100,
+            taxes: ['tax-21'],
+          },
+          {
+            name: 'Gasto con IVA 10%',
+            units: 1,
+            subtotal: 50,
+            taxes: ['tax-10'],
+          },
+        ],
+      });
+    });
+
+    it('should reject purchase line items with more than one tax ID', () => {
+      expect(() =>
+        createDocumentSchema.parse({
+          docType: 'purchase',
+          contactId: 'supplier-123',
+          items: [
+            {
+              name: 'Gasto inválido',
+              units: 1,
+              subtotal: 100,
+              taxes: ['tax-21', 'tax-10'],
+            },
+          ],
+        })
+      ).toThrow();
+    });
   });
 
   describe('get_document', () => {
@@ -128,6 +187,28 @@ describe('Document Tools', () => {
       expect(client.put).toHaveBeenCalledWith('/documents/invoice/doc-123', {
         notes: 'Updated notes',
       });
+    });
+
+    it('should update purchase items with taxes arrays', async () => {
+      const args = {
+        docType: 'purchase' as const,
+        documentId: 'doc-123',
+        items: [{ name: 'Línea actualizada', units: 1, subtotal: 80, taxes: ['tax-21'] }],
+      };
+      await tools.update_document.handler(args);
+      expect(client.put).toHaveBeenCalledWith('/documents/purchase/doc-123', {
+        items: [{ name: 'Línea actualizada', units: 1, subtotal: 80, taxes: ['tax-21'] }],
+      });
+    });
+
+    it('should reject updated purchase items without required line fields', () => {
+      expect(() =>
+        updateDocumentSchema.parse({
+          docType: 'purchase',
+          documentId: 'doc-123',
+          items: [{ taxes: ['tax-21'] }],
+        })
+      ).toThrow();
     });
   });
 

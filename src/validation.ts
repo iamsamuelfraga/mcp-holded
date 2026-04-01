@@ -176,6 +176,16 @@ export const updateDocumentTrackingSchema = z.object({
   carrier: z.string().optional(),
 });
 
+const documentItemSchema = z
+  .object({
+    name: z.string().min(1),
+    units: z.number(),
+    subtotal: z.number(),
+    tax: z.number().optional(),
+    taxes: z.array(z.string()).length(1).optional(),
+  })
+  .passthrough();
+
 export const createDocumentSchema = z.object({
   docType: z.enum([
     'invoice',
@@ -187,7 +197,7 @@ export const createDocumentSchema = z.object({
     'purchase',
   ]),
   contactId: z.string().min(1),
-  items: z.array(z.unknown()),
+  items: z.array(documentItemSchema),
   date: z.number().optional(),
   notes: z.string().optional(),
   currency: z.string().optional(),
@@ -199,7 +209,7 @@ export const createDocumentSchema = z.object({
 export const updateDocumentSchema = documentIdSchema.merge(
   z.object({
     contactId: z.string().optional(),
-    items: z.array(z.unknown()).optional(),
+    items: z.array(documentItemSchema).optional(),
     date: z.number().optional(),
     notes: z.string().optional(),
     currency: z.string().optional(),

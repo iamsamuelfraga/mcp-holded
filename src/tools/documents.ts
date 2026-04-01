@@ -209,7 +209,8 @@ export function getDocumentTools(client: HoldedClient) {
           },
           items: {
             type: 'array',
-            description: 'Array of line items',
+            description:
+              'Array of line items. Each line requires name, units and subtotal. taxes, if present, must contain exactly one Holded tax ID.',
             items: {
               type: 'object',
               properties: {
@@ -217,7 +218,15 @@ export function getDocumentTools(client: HoldedClient) {
                 units: { type: 'number' },
                 subtotal: { type: 'number' },
                 tax: { type: 'number' },
+                taxes: {
+                  type: 'array',
+                  items: { type: 'string' },
+                  minItems: 1,
+                  maxItems: 1,
+                  description: 'Single Holded tax ID to apply to this line item',
+                },
               },
+              required: ['name', 'units', 'subtotal'],
             },
           },
           date: {
@@ -323,7 +332,25 @@ export function getDocumentTools(client: HoldedClient) {
           },
           items: {
             type: 'array',
-            description: 'Array of line items',
+            description:
+              'Array of line items. Each line requires name, units and subtotal. taxes, if present, must contain exactly one Holded tax ID.',
+            items: {
+              type: 'object',
+              properties: {
+                name: { type: 'string' },
+                units: { type: 'number' },
+                subtotal: { type: 'number' },
+                tax: { type: 'number' },
+                taxes: {
+                  type: 'array',
+                  items: { type: 'string' },
+                  minItems: 1,
+                  maxItems: 1,
+                  description: 'Single Holded tax ID to apply to this line item',
+                },
+              },
+              required: ['name', 'units', 'subtotal'],
+            },
           },
           date: {
             type: 'number',
