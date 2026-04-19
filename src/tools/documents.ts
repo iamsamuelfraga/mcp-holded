@@ -233,7 +233,7 @@ export function getDocumentTools(client: HoldedClient) {
             description: 'Currency code (e.g., EUR, USD)',
           },
         },
-        required: ['docType', 'contactId', 'items'],
+        required: ['docType', 'contactId', 'items', 'date'],
       },
       destructiveHint: true,
       handler: withValidation(createDocumentSchema, async (args) => {
@@ -320,6 +320,10 @@ export function getDocumentTools(client: HoldedClient) {
           notes: {
             type: 'string',
             description: 'Notes for the document',
+          },
+          currency: {
+            type: 'string',
+            description: 'Currency code (e.g., EUR, USD)',
           },
         },
         required: ['docType', 'documentId'],
@@ -457,7 +461,7 @@ export function getDocumentTools(client: HoldedClient) {
             description: 'Email message body',
           },
         },
-        required: ['docType', 'documentId', 'emails'],
+        required: ['docType', 'documentId'],
       },
       destructiveHint: true,
       handler: withValidation(sendDocumentSchema, async (args) => {

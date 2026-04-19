@@ -28,11 +28,22 @@ export const contactIdSchema = z.object({
   contactId: z.string().min(1),
 });
 
+export const contactPersonSchema = z.object({
+  name: z.string().min(1),
+  phone: z.string().optional(),
+  email: z.string().email().optional(),
+});
+
 export const createContactSchema = z.object({
   name: z.string().min(1),
   email: z.string().email().optional(),
   phone: z.string().optional(),
-  vatnumber: z.string().optional(),
+  /**
+   * NIF/CIF/VAT identifier for the contact. This is the correct Holded API field
+   * for tax identification numbers. The legacy `vatnumber` field does not exist in
+   * the Holded API and is silently ignored — use `code` instead.
+   */
+  code: z.string().optional(),
   type: z.enum(['client', 'supplier', 'lead', 'debtor', 'creditor']).optional(),
   billAddress: z
     .object({
@@ -44,8 +55,12 @@ export const createContactSchema = z.object({
     })
     .optional(),
   tradename: z.string().optional(),
-  code: z.string().optional(),
   note: z.string().optional(),
+  /**
+   * List of contact persons associated with this contact.
+   * Each person requires a name; phone and email are optional.
+   */
+  contactPersons: z.array(contactPersonSchema).optional(),
 });
 
 export const updateContactSchema = contactIdSchema.merge(createContactSchema.partial());
@@ -179,16 +194,25 @@ export const updateDocumentTrackingSchema = z.object({
 export const createDocumentSchema = z.object({
   docType: z.enum([
     'invoice',
+    'salesreceipt',
+    'creditnote',
+    'receiptnote',
     'estimate',
     'salesorder',
-    'purchaseorder',
     'waybill',
     'proform',
     'purchase',
+    'purchaserefund',
+    'purchaseorder',
   ]),
   contactId: z.string().min(1),
   items: z.array(z.unknown()),
-  date: z.string().optional(),
+  /**
+   * Document date as Unix timestamp (integer). Required by the Holded API.
+   * If omitted, Holded will reject the request. Use Math.floor(Date.now() / 1000)
+   * to get the current timestamp.
+   */
+  date: z.number().int(),
   notes: z.string().optional(),
   currency: z.string().optional(),
 });
@@ -197,7 +221,11 @@ export const updateDocumentSchema = documentIdSchema.merge(
   z.object({
     contactId: z.string().optional(),
     items: z.array(z.unknown()).optional(),
-    date: z.string().optional(),
+    /**
+     * Document date as Unix timestamp (integer).
+     * Required by the Holded API when updating the date field.
+     */
+    date: z.number().int().optional(),
     notes: z.string().optional(),
     currency: z.string().optional(),
   })
