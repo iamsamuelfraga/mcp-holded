@@ -135,9 +135,10 @@ export function getContactTools(client: HoldedClient) {
             type: 'string',
             description: 'Contact phone number',
           },
-          vatnumber: {
+          code: {
             type: 'string',
-            description: 'VAT number / Tax ID',
+            description:
+              'NIF / CIF / VAT number or tax identification code for the contact. This is the correct Holded API field for tax IDs. Note: the legacy "vatnumber" field does not exist in Holded and is silently ignored.',
           },
           type: {
             type: 'string',
@@ -159,13 +160,32 @@ export function getContactTools(client: HoldedClient) {
             type: 'string',
             description: 'Trade name',
           },
-          code: {
-            type: 'string',
-            description: 'Contact code',
-          },
           note: {
             type: 'string',
             description: 'Notes about the contact',
+          },
+          contactPersons: {
+            type: 'array',
+            description: 'List of contact persons associated with this contact',
+            items: {
+              type: 'object',
+              properties: {
+                name: {
+                  type: 'string',
+                  description: 'Contact person name (required)',
+                },
+                phone: {
+                  type: 'string',
+                  description: 'Contact person phone number',
+                },
+                email: {
+                  type: 'string',
+                  format: 'email',
+                  description: 'Contact person email address',
+                },
+              },
+              required: ['name'],
+            },
           },
         },
         required: ['name'],
@@ -217,9 +237,10 @@ export function getContactTools(client: HoldedClient) {
             type: 'string',
             description: 'Contact phone number',
           },
-          vatnumber: {
+          code: {
             type: 'string',
-            description: 'VAT number / Tax ID',
+            description:
+              'NIF / CIF / VAT number or tax identification code for the contact. This is the correct Holded API field for tax IDs. Note: the legacy "vatnumber" field does not exist in Holded and is silently ignored.',
           },
           type: {
             type: 'string',
@@ -229,6 +250,44 @@ export function getContactTools(client: HoldedClient) {
           billAddress: {
             type: 'object',
             description: 'Billing address',
+            properties: {
+              address: { type: 'string' },
+              city: { type: 'string' },
+              postalCode: { type: 'string' },
+              province: { type: 'string' },
+              country: { type: 'string' },
+            },
+          },
+          tradename: {
+            type: 'string',
+            description: 'Trade name',
+          },
+          note: {
+            type: 'string',
+            description: 'Notes about the contact',
+          },
+          contactPersons: {
+            type: 'array',
+            description: 'List of contact persons associated with this contact',
+            items: {
+              type: 'object',
+              properties: {
+                name: {
+                  type: 'string',
+                  description: 'Contact person name (required)',
+                },
+                phone: {
+                  type: 'string',
+                  description: 'Contact person phone number',
+                },
+                email: {
+                  type: 'string',
+                  format: 'email',
+                  description: 'Contact person email address',
+                },
+              },
+              required: ['name'],
+            },
           },
         },
         required: ['contactId'],

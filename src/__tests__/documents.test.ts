@@ -79,24 +79,48 @@ describe('Document Tools', () => {
   });
 
   describe('create_document', () => {
-    it('should create a document with required fields', async () => {
+    it('should create a document with required fields including date as Unix timestamp', async () => {
       const args = {
         docType: 'invoice' as const,
         contactId: 'contact-123',
         items: [{ name: 'Item 1', units: 1, subtotal: 100 }],
+        date: 1700000000,
       };
       await tools.create_document.handler(args);
       expect(client.post).toHaveBeenCalledWith('/documents/invoice', {
         contactId: 'contact-123',
         items: [{ name: 'Item 1', units: 1, subtotal: 100 }],
+        date: 1700000000,
       });
     });
 
-    it('should include optional fields', async () => {
+    it('should reject date as string (must be Unix timestamp integer)', async () => {
+      await expect(
+        tools.create_document.handler({
+          docType: 'invoice' as const,
+          contactId: 'contact-123',
+          items: [],
+          date: '2024-01-15' as any,
+        })
+      ).rejects.toThrow();
+    });
+
+    it('should reject missing date field', async () => {
+      await expect(
+        tools.create_document.handler({
+          docType: 'invoice' as const,
+          contactId: 'contact-123',
+          items: [],
+        } as any)
+      ).rejects.toThrow();
+    });
+
+    it('should include optional fields alongside required date', async () => {
       const args = {
         docType: 'invoice' as const,
         contactId: 'contact-123',
         items: [],
+        date: 1700000000,
         notes: 'Test notes',
         currency: 'EUR',
       };
@@ -104,9 +128,49 @@ describe('Document Tools', () => {
       expect(client.post).toHaveBeenCalledWith('/documents/invoice', {
         contactId: 'contact-123',
         items: [],
+        date: 1700000000,
         notes: 'Test notes',
         currency: 'EUR',
       });
+    });
+
+    it('should accept date as current Unix timestamp', async () => {
+      const now = Math.floor(Date.now() / 1000);
+      const args = {
+        docType: 'estimate' as const,
+        contactId: 'contact-456',
+        items: [{ name: 'Service', units: 1, subtotal: 200 }],
+        date: now,
+      };
+      await tools.create_document.handler(args);
+      expect(client.post).toHaveBeenCalledWith('/documents/estimate', {
+        contactId: 'contact-456',
+        items: [{ name: 'Service', units: 1, subtotal: 200 }],
+        date: now,
+      });
+    });
+
+    it('should accept extended docTypes: salesreceipt, creditnote, receiptnote, purchaserefund', async () => {
+      const extendedTypes = [
+        'salesreceipt',
+        'creditnote',
+        'receiptnote',
+        'purchaserefund',
+      ] as const;
+      for (const docType of extendedTypes) {
+        const args = {
+          docType,
+          contactId: 'contact-123',
+          items: [],
+          date: 1700000000,
+        };
+        await tools.create_document.handler(args);
+        expect(client.post).toHaveBeenCalledWith(`/documents/${docType}`, {
+          contactId: 'contact-123',
+          items: [],
+          date: 1700000000,
+        });
+      }
     });
   });
 
@@ -128,6 +192,46 @@ describe('Document Tools', () => {
       expect(client.put).toHaveBeenCalledWith('/documents/invoice/doc-123', {
         notes: 'Updated notes',
       });
+    });
+
+    it('should accept date as Unix timestamp integer when updating', async () => {
+      const args = {
+        docType: 'invoice' as const,
+        documentId: 'doc-123',
+        date: 1700086400,
+        notes: 'Revised notes',
+      };
+      await tools.update_document.handler(args);
+      expect(client.put).toHaveBeenCalledWith('/documents/invoice/doc-123', {
+        date: 1700086400,
+        notes: 'Revised notes',
+      });
+    });
+
+    it('should reject date as string when updating', async () => {
+      await expect(
+        tools.update_document.handler({
+          docType: 'invoice' as const,
+          documentId: 'doc-123',
+          date: '2024-01-15' as any,
+        })
+      ).rejects.toThrow();
+    });
+
+    it('should accept currency field when updating a document', async () => {
+      const args = {
+        docType: 'invoice' as const,
+        documentId: 'doc-123',
+        currency: 'USD',
+      };
+      await tools.update_document.handler(args);
+      expect(client.put).toHaveBeenCalledWith('/documents/invoice/doc-123', {
+        currency: 'USD',
+      });
+    });
+
+    it('inputSchema should include currency field in update_document', () => {
+      expect(tools.update_document.inputSchema.properties).toHaveProperty('currency');
     });
   });
 
@@ -169,6 +273,46 @@ describe('Document Tools', () => {
         subject: 'Invoice',
         message: 'Please find attached',
       });
+    });
+
+    it('should send a document without emails (emails is optional)', async () => {
+      // emails is optional — the document can be sent to the contact associated with it
+      const args = {
+        docType: 'invoice' as const,
+        documentId: 'doc-123',
+        subject: 'Invoice',
+        message: 'Please find attached',
+      };
+      await tools.send_document.handler(args);
+      expect(client.post).toHaveBeenCalledWith('/documents/invoice/doc-123/send', {
+        subject: 'Invoice',
+        message: 'Please find attached',
+      });
+    });
+
+    it('should send a document with only required fields (docType and documentId)', async () => {
+      const args = {
+        docType: 'invoice' as const,
+        documentId: 'doc-123',
+      };
+      await tools.send_document.handler(args);
+      expect(client.post).toHaveBeenCalledWith('/documents/invoice/doc-123/send', {});
+    });
+
+    it('should reject invalid email addresses in emails array', async () => {
+      await expect(
+        tools.send_document.handler({
+          docType: 'invoice' as const,
+          documentId: 'doc-123',
+          emails: ['not-an-email'],
+        })
+      ).rejects.toThrow();
+    });
+
+    it('inputSchema should not include emails in required array', () => {
+      expect(tools.send_document.inputSchema.required).not.toContain('emails');
+      expect(tools.send_document.inputSchema.required).toContain('docType');
+      expect(tools.send_document.inputSchema.required).toContain('documentId');
     });
   });
 
