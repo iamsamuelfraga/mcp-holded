@@ -187,7 +187,7 @@ npm run dev
 For questions, issues, or feature requests:
 
 - **GitHub Issues**: [Report an issue](https://github.com/iamsamuelfraga/mcp-holded/issues)
-- **Email**: hi@samuelfraga.com
+- **Email**: samuel.fraga@nevent.es
 - **Documentation**: [Holded API Docs](https://developers.holded.com/reference/documents)
 
 ## License
