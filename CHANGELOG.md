@@ -1,3 +1,10 @@
+## [1.5.1](https://github.com/iamsamuelfraga/mcp-holded/compare/v1.5.0...v1.5.1) (2026-04-19)
+
+
+### Bug Fixes
+
+* resolve document date type, contact vatnumber, and contactPersons issues ([b3f967a](https://github.com/iamsamuelfraga/mcp-holded/commit/b3f967a8ce83763f9caf23e5cc55179a74077ea2)), closes [#36](https://github.com/iamsamuelfraga/mcp-holded/issues/36) [#36](https://github.com/iamsamuelfraga/mcp-holded/issues/36)
+
 # [1.5.0](https://github.com/iamsamuelfraga/mcp-holded/compare/v1.4.0...v1.5.0) (2026-01-27)
 
 
