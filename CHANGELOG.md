@@ -1,3 +1,10 @@
+# [1.6.0](https://github.com/iamsamuelfraga/mcp-holded/compare/v1.5.1...v1.6.0) (2026-04-20)
+
+
+### Features
+
+* add document item validation, invoiceNum, taxes, and shared docTypeEnum ([3384f27](https://github.com/iamsamuelfraga/mcp-holded/commit/3384f276737fd0e775706e71d7f731fb5d6dbd9b)), closes [#38](https://github.com/iamsamuelfraga/mcp-holded/issues/38) [#38](https://github.com/iamsamuelfraga/mcp-holded/issues/38)
+
 ## [1.5.1](https://github.com/iamsamuelfraga/mcp-holded/compare/v1.5.0...v1.5.1) (2026-04-19)
 
 
