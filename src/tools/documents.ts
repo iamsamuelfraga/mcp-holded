@@ -213,11 +213,33 @@ export function getDocumentTools(client: HoldedClient) {
             items: {
               type: 'object',
               properties: {
-                name: { type: 'string' },
-                units: { type: 'number' },
-                subtotal: { type: 'number' },
-                tax: { type: 'number' },
+                name: { type: 'string', description: 'Product or service name' },
+                units: { type: 'number', description: 'Quantity of units' },
+                subtotal: {
+                  type: 'number',
+                  description: 'Line subtotal (price × units before tax/discount)',
+                },
+                desc: { type: 'string', description: 'Optional line description' },
+                sku: { type: 'string', description: 'SKU / product reference code' },
+                tax: {
+                  type: 'number',
+                  description: 'Tax percentage (0–100) — alternative to taxes array',
+                },
+                taxes: {
+                  type: 'array',
+                  description:
+                    'Holded tax ID(s) for the line item (max 1 element). Use instead of tax when referencing a specific Holded tax definition.',
+                  items: { type: 'string' },
+                  minItems: 1,
+                  maxItems: 1,
+                },
+                discount: { type: 'number', description: 'Discount percentage (0–100)' },
+                serviceId: {
+                  type: 'string',
+                  description: 'Service ID to link to a Holded service catalog entry',
+                },
               },
+              required: ['name', 'units', 'subtotal'],
             },
           },
           date: {
@@ -231,6 +253,18 @@ export function getDocumentTools(client: HoldedClient) {
           currency: {
             type: 'string',
             description: 'Currency code (e.g., EUR, USD)',
+          },
+          invoiceNum: {
+            type: 'string',
+            description: 'Document reference number (e.g. invoice number from supplier)',
+          },
+          salesChannelId: {
+            type: 'string',
+            description: 'Sales channel ID to associate with the document',
+          },
+          expAccountId: {
+            type: 'string',
+            description: 'Expense account ID for expense documents',
           },
         },
         required: ['docType', 'contactId', 'items', 'date'],
@@ -312,6 +346,37 @@ export function getDocumentTools(client: HoldedClient) {
           items: {
             type: 'array',
             description: 'Array of line items',
+            items: {
+              type: 'object',
+              properties: {
+                name: { type: 'string', description: 'Product or service name' },
+                units: { type: 'number', description: 'Quantity of units' },
+                subtotal: {
+                  type: 'number',
+                  description: 'Line subtotal (price × units before tax/discount)',
+                },
+                desc: { type: 'string', description: 'Optional line description' },
+                sku: { type: 'string', description: 'SKU / product reference code' },
+                tax: {
+                  type: 'number',
+                  description: 'Tax percentage (0–100) — alternative to taxes array',
+                },
+                taxes: {
+                  type: 'array',
+                  description:
+                    'Holded tax ID(s) for the line item (max 1 element). Use instead of tax when referencing a specific Holded tax definition.',
+                  items: { type: 'string' },
+                  minItems: 1,
+                  maxItems: 1,
+                },
+                discount: { type: 'number', description: 'Discount percentage (0–100)' },
+                serviceId: {
+                  type: 'string',
+                  description: 'Service ID to link to a Holded service catalog entry',
+                },
+              },
+              required: ['name', 'units', 'subtotal'],
+            },
           },
           date: {
             type: 'number',
@@ -324,6 +389,18 @@ export function getDocumentTools(client: HoldedClient) {
           currency: {
             type: 'string',
             description: 'Currency code (e.g., EUR, USD)',
+          },
+          invoiceNum: {
+            type: 'string',
+            description: 'Document reference number (e.g. invoice number from supplier)',
+          },
+          salesChannelId: {
+            type: 'string',
+            description: 'Sales channel ID to associate with the document',
+          },
+          expAccountId: {
+            type: 'string',
+            description: 'Expense account ID for expense documents',
           },
         },
         required: ['docType', 'documentId'],

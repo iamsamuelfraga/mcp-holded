@@ -4,6 +4,31 @@ import { z } from 'zod';
  * Common validation schemas
  */
 
+/**
+ * Shared enum of all document types supported by the Holded API.
+ *
+ * Using a single shared constant ensures every schema that references document
+ * types stays in sync automatically. Adding a new document type here
+ * propagates to ALL schemas that use `docTypeEnum` — no risk of partial updates.
+ *
+ * @example
+ *   docTypeEnum.parse('invoice');   // OK
+ *   docTypeEnum.parse('unknown');   // throws ZodError
+ */
+export const docTypeEnum = z.enum([
+  'invoice',
+  'salesreceipt',
+  'creditnote',
+  'receiptnote',
+  'estimate',
+  'salesorder',
+  'waybill',
+  'proform',
+  'purchase',
+  'purchaserefund',
+  'purchaseorder',
+]);
+
 // Pagination schemas
 export const paginationSchema = z.object({
   page: z.number().int().positive().optional(),
@@ -70,106 +95,88 @@ export const contactAttachmentSchema = z.object({
   attachmentId: z.string().min(1),
 });
 
+/**
+ * Schema for a single line item within a document.
+ *
+ * Required fields: name, units, subtotal.
+ * Optional fields: desc, sku, tax (percentage), taxes (Holded tax IDs),
+ * discount, serviceId.
+ *
+ * Uses `.passthrough()` to allow additional fields not listed here, ensuring
+ * forward compatibility with Holded API changes.
+ */
+export const documentItemSchema = z
+  .object({
+    /** Product or service name shown on the document line */
+    name: z.string(),
+    /** Quantity of units */
+    units: z.number(),
+    /** Line subtotal (price × units before tax/discount) */
+    subtotal: z.number(),
+    /** Optional line description */
+    desc: z.string().optional(),
+    /** SKU / product reference code */
+    sku: z.string().optional(),
+    /** Tax percentage (0–100) — alternative to `taxes` */
+    tax: z.number().min(0).max(100).optional(),
+    /**
+     * Holded tax ID(s) for the line item.
+     * Accepts exactly 1 tax ID when provided; an empty array is rejected.
+     * Use this instead of `tax` when you need to reference a specific Holded tax definition.
+     */
+    taxes: z.array(z.string()).min(1).max(1).optional(),
+    /** Discount percentage (0–100) */
+    discount: z.number().min(0).max(100).optional(),
+    /** Service ID to link the line to a Holded service catalog entry */
+    serviceId: z.string().optional(),
+  })
+  .passthrough();
+
 // Document schemas
 export const documentIdSchema = z.object({
-  docType: z.enum([
-    'invoice',
-    'estimate',
-    'salesorder',
-    'purchaseorder',
-    'waybill',
-    'proform',
-    'purchase',
-  ]),
+  docType: docTypeEnum,
   documentId: z.string().min(1),
 });
 
 export const listDocumentsSchema = z
   .object({
-    docType: z.enum([
-      'invoice',
-      'estimate',
-      'salesorder',
-      'purchaseorder',
-      'waybill',
-      'proform',
-      'purchase',
-    ]),
+    docType: docTypeEnum,
   })
   .merge(paginationSchema)
   .merge(fieldFilteringSchema)
   .merge(dateRangeSchema);
 
 export const updateDocumentPipelineSchema = z.object({
-  docType: z.enum([
-    'invoice',
-    'estimate',
-    'salesorder',
-    'purchaseorder',
-    'waybill',
-    'proform',
-    'purchase',
-  ]),
+  docType: docTypeEnum,
   documentId: z.string().min(1),
   pipelineId: z.string().min(1),
   stageId: z.string().min(1),
 });
 
 export const attachFileToDocumentSchema = z.object({
-  docType: z.enum([
-    'invoice',
-    'estimate',
-    'salesorder',
-    'purchaseorder',
-    'waybill',
-    'proform',
-    'purchase',
-  ]),
+  docType: docTypeEnum,
   documentId: z.string().min(1),
   fileBase64: z.string().min(1),
   filename: z.string().min(1),
 });
 
 export const shipItemsByLineSchema = z.object({
-  docType: z.enum([
-    'invoice',
-    'estimate',
-    'salesorder',
-    'purchaseorder',
-    'waybill',
-    'proform',
-    'purchase',
-  ]),
+  docType: docTypeEnum,
   documentId: z.string().min(1),
   lines: z.array(z.unknown()),
 });
 
 export const payDocumentSchema = z.object({
-  docType: z.enum([
-    'invoice',
-    'estimate',
-    'salesorder',
-    'purchaseorder',
-    'waybill',
-    'proform',
-    'purchase',
-  ]),
+  docType: docTypeEnum,
   documentId: z.string().min(1),
   amount: z.number().nonnegative().optional(),
-  date: z.number().optional(),
+  /** Payment date as Unix timestamp integer. */
+  date: z.number().int().optional(),
   treasuryId: z.string().optional(),
 });
 
 export const sendDocumentSchema = z.object({
-  docType: z.enum([
-    'invoice',
-    'estimate',
-    'salesorder',
-    'purchaseorder',
-    'waybill',
-    'proform',
-    'purchase',
-  ]),
+  docType: docTypeEnum,
   documentId: z.string().min(1),
   emails: z.array(z.string().email()).optional(),
   subject: z.string().optional(),
@@ -177,36 +184,16 @@ export const sendDocumentSchema = z.object({
 });
 
 export const updateDocumentTrackingSchema = z.object({
-  docType: z.enum([
-    'invoice',
-    'estimate',
-    'salesorder',
-    'purchaseorder',
-    'waybill',
-    'proform',
-    'purchase',
-  ]),
+  docType: docTypeEnum,
   documentId: z.string().min(1),
   trackingNumber: z.string().optional(),
   carrier: z.string().optional(),
 });
 
 export const createDocumentSchema = z.object({
-  docType: z.enum([
-    'invoice',
-    'salesreceipt',
-    'creditnote',
-    'receiptnote',
-    'estimate',
-    'salesorder',
-    'waybill',
-    'proform',
-    'purchase',
-    'purchaserefund',
-    'purchaseorder',
-  ]),
+  docType: docTypeEnum,
   contactId: z.string().min(1),
-  items: z.array(z.unknown()),
+  items: z.array(documentItemSchema),
   /**
    * Document date as Unix timestamp (integer). Required by the Holded API.
    * If omitted, Holded will reject the request. Use Math.floor(Date.now() / 1000)
@@ -215,12 +202,18 @@ export const createDocumentSchema = z.object({
   date: z.number().int(),
   notes: z.string().optional(),
   currency: z.string().optional(),
+  /** Document reference number (e.g. invoice number from supplier) */
+  invoiceNum: z.string().optional(),
+  /** Sales channel ID to associate with the document */
+  salesChannelId: z.string().optional(),
+  /** Expense account ID for expense documents */
+  expAccountId: z.string().optional(),
 });
 
 export const updateDocumentSchema = documentIdSchema.merge(
   z.object({
     contactId: z.string().optional(),
-    items: z.array(z.unknown()).optional(),
+    items: z.array(documentItemSchema).optional(),
     /**
      * Document date as Unix timestamp (integer).
      * Required by the Holded API when updating the date field.
@@ -228,6 +221,12 @@ export const updateDocumentSchema = documentIdSchema.merge(
     date: z.number().int().optional(),
     notes: z.string().optional(),
     currency: z.string().optional(),
+    /** Document reference number (e.g. invoice number from supplier) */
+    invoiceNum: z.string().optional(),
+    /** Sales channel ID to associate with the document */
+    salesChannelId: z.string().optional(),
+    /** Expense account ID for expense documents */
+    expAccountId: z.string().optional(),
   })
 );
 
@@ -324,36 +323,12 @@ export const updatePaymentSchema = paymentIdSchema.merge(createPaymentSchema.par
 
 // Numbering series schemas
 export const numberingSerieIdSchema = z.object({
-  docType: z.enum([
-    'invoice',
-    'salesreceipt',
-    'creditnote',
-    'receiptnote',
-    'estimate',
-    'salesorder',
-    'waybill',
-    'proform',
-    'purchase',
-    'purchaserefund',
-    'purchaseorder',
-  ]),
+  docType: docTypeEnum,
   serieId: z.string().min(1),
 });
 
 export const createNumberingSerieSchema = z.object({
-  docType: z.enum([
-    'invoice',
-    'salesreceipt',
-    'creditnote',
-    'receiptnote',
-    'estimate',
-    'salesorder',
-    'waybill',
-    'proform',
-    'purchase',
-    'purchaserefund',
-    'purchaseorder',
-  ]),
+  docType: docTypeEnum,
   name: z.string().min(1),
   prefix: z.string().optional(),
   nextNumber: z.number().int().positive().optional(),
