@@ -182,7 +182,8 @@ export function getDocumentTools(client: HoldedClient) {
 
     // Create Document
     create_document: {
-      description: 'Create a new document (invoice, estimate, etc.)',
+      description:
+        'Create a new document (invoice, estimate, etc.). By default the document is approved (finalized) so it appears in the Holded UI; pass approveDoc:false to create a draft instead.',
       inputSchema: {
         type: 'object' as const,
         properties: {
@@ -266,12 +267,18 @@ export function getDocumentTools(client: HoldedClient) {
             type: 'string',
             description: 'Expense account ID for expense documents',
           },
+          approveDoc: {
+            type: 'boolean',
+            description:
+              'Whether to immediately approve (finalize) the document instead of saving it as a draft. Defaults to true so the document is visible in the Holded UI. When the Holded API receives no value it defaults to draft, and drafts do not appear in Sales > Invoices, the contact Sales tab or global search. Pass false only when you intentionally want a draft. Note: approved documents are permanently locked by Holded.',
+          },
         },
         required: ['docType', 'contactId', 'items', 'date'],
       },
       destructiveHint: true,
       handler: withValidation(createDocumentSchema, async (args) => {
-        const { docType, ...body } = args;
+        const { docType, approveDoc, ...rest } = args;
+        const body = { ...rest, approveDoc: approveDoc ?? true };
         return client.post(`/documents/${docType}`, body);
       }),
     },

@@ -208,6 +208,20 @@ export const createDocumentSchema = z.object({
   salesChannelId: z.string().optional(),
   /** Expense account ID for expense documents */
   expAccountId: z.string().optional(),
+  /**
+   * Whether to immediately approve (finalize) the document instead of saving it as a draft.
+   *
+   * Defaults to `true` so created documents are visible in the Holded UI by default. When
+   * omitted, the Holded API itself defaults to `false` (draft), and drafts are hidden from
+   * the standard Sales > Invoices list, the contact's Sales tab and global search — they
+   * exist but are not reachable from the UI.
+   *
+   * Pass `false` explicitly only when you intentionally want a draft for later review.
+   *
+   * Note: once a document is approved it is permanently locked by Holded and cannot be
+   * deleted or freely edited.
+   */
+  approveDoc: z.boolean().optional(),
 });
 
 export const updateDocumentSchema = documentIdSchema.merge(

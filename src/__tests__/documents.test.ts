@@ -107,6 +107,7 @@ describe('Document Tools', () => {
         contactId: 'contact-123',
         items: [{ name: 'Item 1', units: 1, subtotal: 100 }],
         date: 1700000000,
+        approveDoc: true,
       });
     });
 
@@ -147,6 +148,7 @@ describe('Document Tools', () => {
         date: 1700000000,
         notes: 'Test notes',
         currency: 'EUR',
+        approveDoc: true,
       });
     });
 
@@ -163,6 +165,7 @@ describe('Document Tools', () => {
         contactId: 'contact-456',
         items: [{ name: 'Service', units: 1, subtotal: 200 }],
         date: now,
+        approveDoc: true,
       });
     });
 
@@ -185,8 +188,66 @@ describe('Document Tools', () => {
           contactId: 'contact-123',
           items: [],
           date: 1700000000,
+          approveDoc: true,
         });
       }
+    });
+
+    describe('approveDoc parameter', () => {
+      it('should default approveDoc to true when omitted, finalizing the document', async () => {
+        // Regression test for github issue #51: without approveDoc the Holded API
+        // creates documents as drafts that are invisible in the UI.
+        await tools.create_document.handler({
+          docType: 'invoice' as const,
+          contactId: 'contact-123',
+          items: [{ name: 'Item', units: 1, subtotal: 100 }],
+          date: 1700000000,
+        });
+        const callBody = (client.post as any).mock.calls[0][1];
+        expect(callBody.approveDoc).toBe(true);
+      });
+
+      it('should forward approveDoc:true explicitly', async () => {
+        await tools.create_document.handler({
+          docType: 'invoice' as const,
+          contactId: 'contact-123',
+          items: [{ name: 'Item', units: 1, subtotal: 100 }],
+          date: 1700000000,
+          approveDoc: true,
+        });
+        const callBody = (client.post as any).mock.calls[0][1];
+        expect(callBody.approveDoc).toBe(true);
+      });
+
+      it('should forward approveDoc:false to intentionally create a draft', async () => {
+        await tools.create_document.handler({
+          docType: 'invoice' as const,
+          contactId: 'contact-123',
+          items: [{ name: 'Item', units: 1, subtotal: 100 }],
+          date: 1700000000,
+          approveDoc: false,
+        });
+        const callBody = (client.post as any).mock.calls[0][1];
+        expect(callBody.approveDoc).toBe(false);
+      });
+
+      it('should reject approveDoc with a non-boolean value', async () => {
+        await expect(
+          tools.create_document.handler({
+            docType: 'invoice' as const,
+            contactId: 'contact-123',
+            items: [],
+            date: 1700000000,
+            approveDoc: 'yes' as any,
+          })
+        ).rejects.toThrow();
+      });
+
+      it('should include approveDoc in create_document inputSchema as boolean', () => {
+        const props = tools.create_document.inputSchema.properties as any;
+        expect(props).toHaveProperty('approveDoc');
+        expect(props.approveDoc.type).toBe('boolean');
+      });
     });
   });
 
@@ -445,6 +506,7 @@ describe('Document Tools', () => {
         items: [{ name: 'Part A', units: 2, subtotal: 50 }],
         date: 1700000000,
         invoiceNum: 'PROV-2024-001',
+        approveDoc: true,
       });
     });
 
@@ -533,6 +595,7 @@ describe('Document Tools', () => {
         contactId: 'contact-123',
         items: [{ name: 'Service A', units: 1, subtotal: 200, taxes: ['holded-tax-123'] }],
         date: 1700000000,
+        approveDoc: true,
       });
     });
   });
@@ -559,6 +622,7 @@ describe('Document Tools', () => {
         items: [{ name: 'Item', units: 1, subtotal: 100 }],
         date: 1700000000,
         salesChannelId: 'channel-abc',
+        approveDoc: true,
       });
     });
 
@@ -596,6 +660,7 @@ describe('Document Tools', () => {
         items: [{ name: 'Office Supply', units: 1, subtotal: 50 }],
         date: 1700000000,
         expAccountId: 'exp-account-456',
+        approveDoc: true,
       });
     });
 
