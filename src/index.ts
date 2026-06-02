@@ -20,6 +20,9 @@ import { getContactGroupTools } from './tools/contact-groups.js';
 import { getRemittanceTools } from './tools/remittances.js';
 import { getServiceTools } from './tools/services.js';
 import { getWarehouseTools } from './tools/warehouses.js';
+import { getTimeTrackingTools } from './tools/time-tracking.js';
+import { getAccountingTools } from './tools/accounting.js';
+import { getBankingTools } from './tools/banking.js';
 
 // Initialize multi-tenancy support
 const tenantConfigs = loadTenantConfigs();
@@ -73,6 +76,9 @@ const allTools = {
   ...getRemittanceTools(client),
   ...getServiceTools(client),
   ...getWarehouseTools(client),
+  ...getTimeTrackingTools(client),
+  ...getAccountingTools(client),
+  ...getBankingTools(client),
 };
 
 // Create server
@@ -157,6 +163,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     ...getRemittanceTools(tenantContext.client),
     ...getServiceTools(tenantContext.client),
     ...getWarehouseTools(tenantContext.client),
+    ...getTimeTrackingTools(tenantContext.client),
+    ...getAccountingTools(tenantContext.client),
+    ...getBankingTools(tenantContext.client),
   };
 
   const tool = tenantTools[name as keyof typeof tenantTools];
