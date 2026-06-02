@@ -418,6 +418,22 @@ export const dailyLedgerSchema = z
     path: ['endtmp'],
   });
 
+// Banking (EXPERIMENTAL — undocumented internal API) schemas
+//
+// Bank-feed reconciliation lives on Holded's internal API
+// (`/internal/banking/...`), which is not part of the public contract. These
+// schemas exist so the experimental tool validates its identifiers, but the
+// endpoint itself is unverified — see `src/tools/banking.ts`.
+
+export const reconcileBankTransactionSchema = z.object({
+  /** Holded bank account id (the bank-feed account, not a treasury id). */
+  accountId: z.string().min(1),
+  /** Bank-feed transaction id to reconcile. */
+  transactionId: z.string().min(1),
+  /** Optional accounting entry / document id to match the transaction against. */
+  entryId: z.string().min(1).optional(),
+});
+
 /**
  * Validation utility function
  */

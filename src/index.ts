@@ -22,6 +22,7 @@ import { getServiceTools } from './tools/services.js';
 import { getWarehouseTools } from './tools/warehouses.js';
 import { getTimeTrackingTools } from './tools/time-tracking.js';
 import { getAccountingTools } from './tools/accounting.js';
+import { getBankingTools } from './tools/banking.js';
 
 // Initialize multi-tenancy support
 const tenantConfigs = loadTenantConfigs();
@@ -77,6 +78,7 @@ const allTools = {
   ...getWarehouseTools(client),
   ...getTimeTrackingTools(client),
   ...getAccountingTools(client),
+  ...getBankingTools(client),
 };
 
 // Create server
@@ -163,6 +165,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     ...getWarehouseTools(tenantContext.client),
     ...getTimeTrackingTools(tenantContext.client),
     ...getAccountingTools(tenantContext.client),
+    ...getBankingTools(tenantContext.client),
   };
 
   const tool = tenantTools[name as keyof typeof tenantTools];

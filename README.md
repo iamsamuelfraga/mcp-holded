@@ -26,8 +26,15 @@ This MCP server provides access to the complete Holded Invoice API:
 - **Services** (5 tools): Manage services.
 - **Time Tracking** (3 tools, read-only): Read project time entries from the Projects API (list all, list by project, get one), with optional flattening that adds `hours` for reporting.
 - **Accounting** (2 tools, read-only): Daily ledger (journal) and full chart of accounts from the Accounting API.
+- **Banking** (1 tool, ⚠️ experimental): Reconcile a bank-feed transaction via Holded's **undocumented internal API**. Not part of the public contract and may break without notice — see the note below.
 
-**Total: 77 tools**
+**Total: 78 tools**
+
+> **⚠️ Experimental — Banking tool:** `reconcile_bank_transaction` targets
+> Holded's internal banking API (`/internal/banking/...`), which is **not
+> documented or supported** by Holded. It has not been verified against a live
+> account, may change or break without notice, and always returns a
+> `_warnings` array flagging its experimental status. Use at your own risk.
 
 ## Installation
 
@@ -168,6 +175,7 @@ internal `apiGroup` selector; the invoicing base remains the default:
 https://api.holded.com/api/invoicing/v1/    # documents, contacts, products, treasury, … (default)
 https://api.holded.com/api/projects/v1/     # projects & time tracking
 https://api.holded.com/api/accounting/v1/   # chart of accounts & daily ledger (read-only)
+https://api.holded.com/api/internal/...     # ⚠️ undocumented internal API (experimental banking only)
 ```
 
 ### Authentication

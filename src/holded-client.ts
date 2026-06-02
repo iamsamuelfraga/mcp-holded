@@ -11,11 +11,16 @@ import FormData from 'form-data';
  *   (`/projects/times`, `/projects/{id}/times/...`).
  * - `accounting` — the (read-only) accounting layer: chart of accounts and the
  *   daily ledger / journal (`/chartofaccounts`, `/dailyledger`).
+ * - `internal` — Holded's UNDOCUMENTED internal API (note: no `/v1` segment).
+ *   Currently used only for bank-feed reconciliation (`/internal/banking/...`).
+ *   These endpoints are NOT part of the public contract and may change or break
+ *   without notice; treat tools built on them as experimental and unverified.
  */
 const API_BASES = {
   invoicing: 'https://api.holded.com/api/invoicing/v1',
   projects: 'https://api.holded.com/api/projects/v1',
   accounting: 'https://api.holded.com/api/accounting/v1',
+  internal: 'https://api.holded.com/api',
 } as const;
 
 export type ApiGroup = keyof typeof API_BASES;
